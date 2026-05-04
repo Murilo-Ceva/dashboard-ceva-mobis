@@ -1,0 +1,918 @@
+{
+  "resumo": {
+    "total_nfs": 752,
+    "no_prazo": 671,
+    "fora_prazo": 81,
+    "volumes": 4307,
+    "otd": 89.2,
+    "data_processamento": "30/04/2026 15:00"
+  },
+  "tsp": [
+    {
+      "tsp": "CAMILO",
+      "no_prazo": 57,
+      "fora": 7,
+      "total": 64,
+      "volumes": 286,
+      "otd": 89.1
+    },
+    {
+      "tsp": "CARVALIMA",
+      "no_prazo": 46,
+      "fora": 1,
+      "total": 47,
+      "volumes": 286,
+      "otd": 97.9
+    },
+    {
+      "tsp": "NORTEX",
+      "no_prazo": 5,
+      "fora": 7,
+      "total": 12,
+      "volumes": 26,
+      "otd": 41.7
+    },
+    {
+      "tsp": "RIO VERMELHO",
+      "no_prazo": 33,
+      "fora": 2,
+      "total": 35,
+      "volumes": 224,
+      "otd": 94.3
+    },
+    {
+      "tsp": "RISSO",
+      "no_prazo": 300,
+      "fora": 57,
+      "total": 357,
+      "volumes": 2387,
+      "otd": 84.0
+    },
+    {
+      "tsp": "TERMACO",
+      "no_prazo": 124,
+      "fora": 0,
+      "total": 124,
+      "volumes": 451,
+      "otd": 100.0
+    },
+    {
+      "tsp": "TRANSTRY",
+      "no_prazo": 59,
+      "fora": 7,
+      "total": 66,
+      "volumes": 340,
+      "otd": 89.4
+    },
+    {
+      "tsp": "XD BETIM",
+      "no_prazo": 46,
+      "fora": 0,
+      "total": 46,
+      "volumes": 305,
+      "otd": 100.0
+    }
+  ],
+  "dealer": [
+    {
+      "dealer_id": "10002",
+      "no_prazo": 5,
+      "fora": 0,
+      "total": 5,
+      "uf": "MA",
+      "tsp": "TERMACO",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "11004",
+      "no_prazo": 3,
+      "fora": 0,
+      "total": 3,
+      "uf": "MG",
+      "tsp": "XD BETIM",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "11008",
+      "no_prazo": 4,
+      "fora": 0,
+      "total": 4,
+      "uf": "MG",
+      "tsp": "XD BETIM",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "11010",
+      "no_prazo": 2,
+      "fora": 0,
+      "total": 2,
+      "uf": "MG",
+      "tsp": "XD BETIM",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "11016",
+      "no_prazo": 4,
+      "fora": 0,
+      "total": 4,
+      "uf": "MG",
+      "tsp": "XD BETIM",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "11021",
+      "no_prazo": 3,
+      "fora": 0,
+      "total": 3,
+      "uf": "MG",
+      "tsp": "XD BETIM",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "11031",
+      "no_prazo": 2,
+      "fora": 0,
+      "total": 2,
+      "uf": "MG",
+      "tsp": "XD BETIM",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "11033",
+      "no_prazo": 1,
+      "fora": 0,
+      "total": 1,
+      "uf": "MG",
+      "tsp": "XD BETIM",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "11035",
+      "no_prazo": 2,
+      "fora": 0,
+      "total": 2,
+      "uf": "MG",
+      "tsp": "XD BETIM",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "11037",
+      "no_prazo": 6,
+      "fora": 0,
+      "total": 6,
+      "uf": "MG",
+      "tsp": "XD BETIM",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "11039",
+      "no_prazo": 2,
+      "fora": 0,
+      "total": 2,
+      "uf": "MG",
+      "tsp": "XD BETIM",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "11040",
+      "no_prazo": 1,
+      "fora": 0,
+      "total": 1,
+      "uf": "MG",
+      "tsp": "XD BETIM",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "12001",
+      "no_prazo": 7,
+      "fora": 0,
+      "total": 7,
+      "uf": "SP",
+      "tsp": "RISSO",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "12004",
+      "no_prazo": 3,
+      "fora": 0,
+      "total": 3,
+      "uf": "MS",
+      "tsp": "CARVALIMA",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "12005",
+      "no_prazo": 1,
+      "fora": 0,
+      "total": 1,
+      "uf": "MS",
+      "tsp": "CARVALIMA",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "13003",
+      "no_prazo": 3,
+      "fora": 0,
+      "total": 3,
+      "uf": "MT",
+      "tsp": "CARVALIMA",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "13004",
+      "no_prazo": 5,
+      "fora": 0,
+      "total": 5,
+      "uf": "MT",
+      "tsp": "CARVALIMA",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "13006",
+      "no_prazo": 3,
+      "fora": 0,
+      "total": 3,
+      "uf": "MT",
+      "tsp": "CARVALIMA",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "13007",
+      "no_prazo": 2,
+      "fora": 0,
+      "total": 2,
+      "uf": "MT",
+      "tsp": "CARVALIMA",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "14003",
+      "no_prazo": 5,
+      "fora": 0,
+      "total": 5,
+      "uf": "PA",
+      "tsp": "CARVALIMA",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "14005",
+      "no_prazo": 2,
+      "fora": 0,
+      "total": 2,
+      "uf": "PA",
+      "tsp": "CARVALIMA",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "14010",
+      "no_prazo": 2,
+      "fora": 0,
+      "total": 2,
+      "uf": "PA",
+      "tsp": "CARVALIMA",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "15003",
+      "no_prazo": 3,
+      "fora": 0,
+      "total": 3,
+      "uf": "PB",
+      "tsp": "TERMACO",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "15004",
+      "no_prazo": 6,
+      "fora": 0,
+      "total": 6,
+      "uf": "PB",
+      "tsp": "TERMACO",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "16001",
+      "no_prazo": 10,
+      "fora": 0,
+      "total": 10,
+      "uf": "PE",
+      "tsp": "TERMACO",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "16004",
+      "no_prazo": 6,
+      "fora": 0,
+      "total": 6,
+      "uf": "PE",
+      "tsp": "TERMACO",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "16009",
+      "no_prazo": 5,
+      "fora": 0,
+      "total": 5,
+      "uf": "PE",
+      "tsp": "TERMACO",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "16011",
+      "no_prazo": 2,
+      "fora": 0,
+      "total": 2,
+      "uf": "PE",
+      "tsp": "TERMACO",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "17002",
+      "no_prazo": 8,
+      "fora": 0,
+      "total": 8,
+      "uf": "PI",
+      "tsp": "TERMACO",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "18008",
+      "no_prazo": 5,
+      "fora": 0,
+      "total": 5,
+      "uf": "PR",
+      "tsp": "TRANSTRY",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "18010",
+      "no_prazo": 3,
+      "fora": 0,
+      "total": 3,
+      "uf": "PR",
+      "tsp": "TRANSTRY",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "18012",
+      "no_prazo": 4,
+      "fora": 0,
+      "total": 4,
+      "uf": "PR",
+      "tsp": "TRANSTRY",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "18016",
+      "no_prazo": 1,
+      "fora": 0,
+      "total": 1,
+      "uf": "PR",
+      "tsp": "TRANSTRY",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "18024",
+      "no_prazo": 13,
+      "fora": 0,
+      "total": 13,
+      "uf": "PR",
+      "tsp": "TRANSTRY",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "18029",
+      "no_prazo": 2,
+      "fora": 0,
+      "total": 2,
+      "uf": "PR",
+      "tsp": "TRANSTRY",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "19015",
+      "no_prazo": 1,
+      "fora": 0,
+      "total": 1,
+      "uf": "RJ",
+      "tsp": "CAMILO",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "19016",
+      "no_prazo": 3,
+      "fora": 0,
+      "total": 3,
+      "uf": "RJ",
+      "tsp": "CAMILO",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "19030",
+      "no_prazo": 2,
+      "fora": 0,
+      "total": 2,
+      "uf": "RJ",
+      "tsp": "CAMILO",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "20001",
+      "no_prazo": 5,
+      "fora": 0,
+      "total": 5,
+      "uf": "RN",
+      "tsp": "TERMACO",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "20002",
+      "no_prazo": 1,
+      "fora": 0,
+      "total": 1,
+      "uf": "RN",
+      "tsp": "TERMACO",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "2001",
+      "no_prazo": 7,
+      "fora": 0,
+      "total": 7,
+      "uf": "AL",
+      "tsp": "TERMACO",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "2003",
+      "no_prazo": 1,
+      "fora": 0,
+      "total": 1,
+      "uf": "AL",
+      "tsp": "TERMACO",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "21002",
+      "no_prazo": 4,
+      "fora": 0,
+      "total": 4,
+      "uf": "RO",
+      "tsp": "CARVALIMA",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "21003",
+      "no_prazo": 2,
+      "fora": 0,
+      "total": 2,
+      "uf": "RO",
+      "tsp": "CARVALIMA",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "21004",
+      "no_prazo": 4,
+      "fora": 0,
+      "total": 4,
+      "uf": "AC",
+      "tsp": "CARVALIMA",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "23003",
+      "no_prazo": 3,
+      "fora": 0,
+      "total": 3,
+      "uf": "RS",
+      "tsp": "TRANSTRY",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "23004",
+      "no_prazo": 3,
+      "fora": 0,
+      "total": 3,
+      "uf": "RS",
+      "tsp": "TRANSTRY",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "23015",
+      "no_prazo": 1,
+      "fora": 0,
+      "total": 1,
+      "uf": "RS",
+      "tsp": "TRANSTRY",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "23017",
+      "no_prazo": 1,
+      "fora": 0,
+      "total": 1,
+      "uf": "RS",
+      "tsp": "TRANSTRY",
+      "otd": 100.0
+    },
+    {
+      "dealer_id": "23018",
+      "no_prazo": 1,
+      "fora": 0,
+      "total": 1,
+      "uf": "RS",
+      "tsp": "TRANSTRY",
+      "otd": 100.0
+    }
+  ],
+  "uf": [
+    {
+      "uf": "AC",
+      "no_prazo": 4,
+      "fora": 0,
+      "total": 4,
+      "volumes": 10,
+      "otd": 100.0
+    },
+    {
+      "uf": "AL",
+      "no_prazo": 8,
+      "fora": 0,
+      "total": 8,
+      "volumes": 36,
+      "otd": 100.0
+    },
+    {
+      "uf": "BA",
+      "no_prazo": 35,
+      "fora": 0,
+      "total": 35,
+      "volumes": 121,
+      "otd": 100.0
+    },
+    {
+      "uf": "CE",
+      "no_prazo": 12,
+      "fora": 0,
+      "total": 12,
+      "volumes": 33,
+      "otd": 100.0
+    },
+    {
+      "uf": "DF",
+      "no_prazo": 12,
+      "fora": 0,
+      "total": 12,
+      "volumes": 93,
+      "otd": 100.0
+    },
+    {
+      "uf": "MA",
+      "no_prazo": 5,
+      "fora": 0,
+      "total": 5,
+      "volumes": 16,
+      "otd": 100.0
+    },
+    {
+      "uf": "MG",
+      "no_prazo": 46,
+      "fora": 0,
+      "total": 46,
+      "volumes": 305,
+      "otd": 100.0
+    },
+    {
+      "uf": "MS",
+      "no_prazo": 7,
+      "fora": 0,
+      "total": 7,
+      "volumes": 19,
+      "otd": 100.0
+    },
+    {
+      "uf": "MT",
+      "no_prazo": 13,
+      "fora": 0,
+      "total": 13,
+      "volumes": 178,
+      "otd": 100.0
+    },
+    {
+      "uf": "PB",
+      "no_prazo": 11,
+      "fora": 0,
+      "total": 11,
+      "volumes": 42,
+      "otd": 100.0
+    },
+    {
+      "uf": "PE",
+      "no_prazo": 25,
+      "fora": 0,
+      "total": 25,
+      "volumes": 81,
+      "otd": 100.0
+    },
+    {
+      "uf": "PI",
+      "no_prazo": 8,
+      "fora": 0,
+      "total": 8,
+      "volumes": 31,
+      "otd": 100.0
+    },
+    {
+      "uf": "PR",
+      "no_prazo": 22,
+      "fora": 0,
+      "total": 22,
+      "volumes": 173,
+      "otd": 100.0
+    },
+    {
+      "uf": "RN",
+      "no_prazo": 14,
+      "fora": 0,
+      "total": 14,
+      "volumes": 78,
+      "otd": 100.0
+    },
+    {
+      "uf": "RO",
+      "no_prazo": 6,
+      "fora": 0,
+      "total": 6,
+      "volumes": 7,
+      "otd": 100.0
+    },
+    {
+      "uf": "SE",
+      "no_prazo": 6,
+      "fora": 0,
+      "total": 6,
+      "volumes": 13,
+      "otd": 100.0
+    },
+    {
+      "uf": "TO",
+      "no_prazo": 3,
+      "fora": 0,
+      "total": 3,
+      "volumes": 9,
+      "otd": 100.0
+    },
+    {
+      "uf": "ES",
+      "no_prazo": 19,
+      "fora": 1,
+      "total": 20,
+      "volumes": 154,
+      "otd": 95.0
+    },
+    {
+      "uf": "PA",
+      "no_prazo": 16,
+      "fora": 1,
+      "total": 17,
+      "volumes": 72,
+      "otd": 94.1
+    },
+    {
+      "uf": "GO",
+      "no_prazo": 18,
+      "fora": 2,
+      "total": 20,
+      "volumes": 122,
+      "otd": 90.0
+    },
+    {
+      "uf": "SC",
+      "no_prazo": 23,
+      "fora": 3,
+      "total": 26,
+      "volumes": 119,
+      "otd": 88.5
+    },
+    {
+      "uf": "RJ",
+      "no_prazo": 38,
+      "fora": 6,
+      "total": 44,
+      "volumes": 132,
+      "otd": 86.4
+    },
+    {
+      "uf": "SP",
+      "no_prazo": 301,
+      "fora": 57,
+      "total": 358,
+      "volumes": 2389,
+      "otd": 84.1
+    },
+    {
+      "uf": "RS",
+      "no_prazo": 14,
+      "fora": 4,
+      "total": 18,
+      "volumes": 48,
+      "otd": 77.8
+    },
+    {
+      "uf": "AP",
+      "no_prazo": 1,
+      "fora": 1,
+      "total": 2,
+      "volumes": 4,
+      "otd": 50.0
+    },
+    {
+      "uf": "AM",
+      "no_prazo": 4,
+      "fora": 5,
+      "total": 9,
+      "volumes": 20,
+      "otd": 44.4
+    },
+    {
+      "uf": "RR",
+      "no_prazo": 0,
+      "fora": 1,
+      "total": 1,
+      "volumes": 2,
+      "otd": 0.0
+    }
+  ],
+  "dia": [
+    {
+      "dia": 2,
+      "no_prazo": 22,
+      "fora": 0,
+      "total": 22,
+      "otd": 100.0
+    },
+    {
+      "dia": 3,
+      "no_prazo": 18,
+      "fora": 0,
+      "total": 18,
+      "otd": 100.0
+    },
+    {
+      "dia": 4,
+      "no_prazo": 11,
+      "fora": 7,
+      "total": 18,
+      "otd": 61.1
+    },
+    {
+      "dia": 5,
+      "no_prazo": 23,
+      "fora": 17,
+      "total": 40,
+      "otd": 57.5
+    },
+    {
+      "dia": 6,
+      "no_prazo": 32,
+      "fora": 8,
+      "total": 40,
+      "otd": 80.0
+    },
+    {
+      "dia": 9,
+      "no_prazo": 31,
+      "fora": 8,
+      "total": 39,
+      "otd": 79.5
+    },
+    {
+      "dia": 10,
+      "no_prazo": 24,
+      "fora": 3,
+      "total": 27,
+      "otd": 88.9
+    },
+    {
+      "dia": 11,
+      "no_prazo": 26,
+      "fora": 4,
+      "total": 30,
+      "otd": 86.7
+    },
+    {
+      "dia": 12,
+      "no_prazo": 27,
+      "fora": 4,
+      "total": 31,
+      "otd": 87.1
+    },
+    {
+      "dia": 13,
+      "no_prazo": 20,
+      "fora": 6,
+      "total": 26,
+      "otd": 76.9
+    },
+    {
+      "dia": 16,
+      "no_prazo": 27,
+      "fora": 1,
+      "total": 28,
+      "otd": 96.4
+    },
+    {
+      "dia": 17,
+      "no_prazo": 31,
+      "fora": 3,
+      "total": 34,
+      "otd": 91.2
+    },
+    {
+      "dia": 18,
+      "no_prazo": 54,
+      "fora": 0,
+      "total": 54,
+      "otd": 100.0
+    },
+    {
+      "dia": 19,
+      "no_prazo": 40,
+      "fora": 5,
+      "total": 45,
+      "otd": 88.9
+    },
+    {
+      "dia": 20,
+      "no_prazo": 35,
+      "fora": 3,
+      "total": 38,
+      "otd": 92.1
+    },
+    {
+      "dia": 23,
+      "no_prazo": 45,
+      "fora": 4,
+      "total": 49,
+      "otd": 91.8
+    },
+    {
+      "dia": 24,
+      "no_prazo": 69,
+      "fora": 3,
+      "total": 72,
+      "otd": 95.8
+    },
+    {
+      "dia": 25,
+      "no_prazo": 55,
+      "fora": 2,
+      "total": 57,
+      "otd": 96.5
+    },
+    {
+      "dia": 26,
+      "no_prazo": 50,
+      "fora": 1,
+      "total": 51,
+      "otd": 98.0
+    },
+    {
+      "dia": 27,
+      "no_prazo": 30,
+      "fora": 2,
+      "total": 32,
+      "otd": 93.8
+    }
+  ],
+  "ocorrencias": [
+    {
+      "ocorrencia": "Recusa",
+      "count": 3
+    },
+    {
+      "ocorrencia": "EXTRAVIO",
+      "count": 3
+    },
+    {
+      "ocorrencia": "Avaria",
+      "count": 2
+    },
+    {
+      "ocorrencia": "Extravio",
+      "count": 2
+    },
+    {
+      "ocorrencia": "Reentrega",
+      "count": 1
+    },
+    {
+      "ocorrencia": "Local fechado",
+      "count": 1
+    },
+    {
+      "ocorrencia": "Causas climáticas",
+      "count": 1
+    }
+  ]
+}
