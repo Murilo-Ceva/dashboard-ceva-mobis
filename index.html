@@ -1069,13 +1069,18 @@ function stats(rows){
   const fp=rows.filter(r=>r._isFP).length;
   const pnp=rows.filter(r=>r._isPNP).length;
   const pfp=rows.filter(r=>r._isPFP).length;
-  const fin=rows.filter(r=>r._isFin).length;
-  const pend=rows.filter(r=>r._isPend).length;
+  // FIX OTD >100: usar a mesma coluna Status para numerador e denominador.
+  // Finalizadas = Entregue No Prazo + Entregue Fora do Prazo.
+  // Pendentes = Pendente No Prazo + Pendente Fora do Prazo.
+  // Antes misturava Status no numerador com Status Final no denominador; quando Status Final vinha inconsistente,
+  // UF podia passar de 100%.
+  const fin=np+fp;
+  const pend=pnp+pfp;
   const vols=rows.reduce((s,r)=>s+r._vols,0);
-  const otd=fin>0?Math.round(np/fin*1000)/10:null;
+  const otd=fin>0?Math.min(100,Math.round(np/fin*1000)/10):null;
   return{np,fp,pnp,pfp,fin,pend,total:rows.length,otd,vols:Math.round(vols)};
 }
-function otdColor(v){if(v===null)return'#6b7a99';if(v>=META)return'#2ecc71';if(v>=WARN)return'#f4a620';return'#e63946';}
+function otdColor(v){if(v===null)return'#6b7a99';v=Math.min(100,v);if(v>=META)return'#2ecc71';if(v>=WARN)return'#f4a620';return'#e63946';}
 function otdPill(v){if(v===null)return'<span class="pill info">—</span>';const c=v>=META?'ok':v>=WARN?'warn':'danger';return`<span class="pill ${c}">${v.toFixed(1).replace('.',',')}%</span>`;}
 function otdPct(v){if(v===null)return`<span style="color:var(--muted)">—</span>`;return`<b style="color:${otdColor(v)}">${v.toFixed(1).replace('.',',')}%</b>`;}
 function gapBadge(otd){if(otd===null)return'—';const g=META-otd;return g<=0?`<span style="color:var(--green);font-weight:700">+${Math.abs(g).toFixed(1)}pp</span>`:`<span style="color:var(--red);font-weight:700">-${g.toFixed(1)}pp</span>`;}
@@ -1589,7 +1594,7 @@ function renderDia(){
 // ══════════════════════════════════════
 //  RENDER: MAPA (Leaflet)
 // ══════════════════════════════════════
-const UFOTD_COLOR=v=>{if(v===null)return'rgba(107,122,153,.35)';if(v>=META)return'#2ecc71';if(v>=95)return'#1d6be6';if(v>=90)return'#f4a620';if(v>=WARN)return'#f97316';return'#e63946';};
+const UFOTD_COLOR=v=>{if(v===null)return'rgba(107,122,153,.35)';v=Math.min(100,v);if(v>=META)return'#2ecc71';if(v>=95)return'#1d6be6';if(v>=90)return'#f4a620';if(v>=WARN)return'#f97316';return'#e63946';};
 const GEO_URL='https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson';
 function ufFromGeo(p){const n=(p.name||p.sigla||'').trim();const m={Acre:'AC',Alagoas:'AL','Amapá':'AP',Amazonas:'AM',Bahia:'BA','Ceará':'CE','Distrito Federal':'DF','Espírito Santo':'ES','Goiás':'GO','Maranhão':'MA','Mato Grosso':'MT','Mato Grosso do Sul':'MS','Minas Gerais':'MG','Pará':'PA','Paraíba':'PB','Paraná':'PR',Pernambuco:'PE','Piauí':'PI','Rio de Janeiro':'RJ','Rio Grande do Norte':'RN','Rio Grande do Sul':'RS','Rondônia':'RO',Roraima:'RR','Santa Catarina':'SC','São Paulo':'SP',Sergipe:'SE',Tocantins:'TO'};return m[n]||n.slice(0,2).toUpperCase();}
 
