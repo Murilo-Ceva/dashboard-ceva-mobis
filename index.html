@@ -12,20 +12,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>Chart.register(ChartDataLabels);</script>
-
-<script>
-// Guarda defensiva para evento atrasado do Chart.js depois de recriar/destruir canvas.
-window.addEventListener('error',function(e){
-  const msg=String(e.message||'');
-  const file=String(e.filename||'');
-  if(msg.includes('handleEvent') && file.includes('chart')){
-    console.warn('Evento atrasado do Chart.js ignorado:', msg);
-    e.preventDefault();
-    return true;
-  }
-},true);
-</script>
-
+<script>window.addEventListener('error',function(e){const msg=String(e.message||''),file=String(e.filename||'');if(msg.includes('handleEvent')&&file.includes('chart')){console.warn('Evento atrasado do Chart.js ignorado:',msg);e.preventDefault();return true;}},true);</script>
 <style>
 /* ════════════════════════════════════════
    DESIGN TOKENS
@@ -422,19 +409,11 @@ body.light .logo-name{color:var(--text);}
 body.light .page-title{color:var(--text);}
 
 /* ── AJUSTE CEVA ONLY NO MENU LATERAL ── */
-.logo-wrap{min-height:64px;}
-.logo-wrap > svg{display:block;}
-.logo-wrap .logo-text{display:none!important;}
-.sidebar.collapsed .logo-wrap > svg{width:36px!important;height:auto!important;}
+.logo-wrap{min-height:64px;}.logo-wrap > svg{display:block;}.logo-wrap .logo-text{display:none!important;}.sidebar.collapsed .logo-wrap > svg{width:36px!important;height:auto!important;}
 /* ── AJUSTE TOPBAR: FILTROS SEM BARRA DE ROLAGEM ── */
-.topbar{overflow:hidden!important;}
-.topbar-filters{overflow-x:hidden!important;overflow-y:hidden!important;scrollbar-width:none!important;flex-wrap:nowrap!important;min-width:0!important;}
-.topbar-filters::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}
-.topbar-filters .fsearch,.topbar-filters .fsel{min-width:0!important;}
-.topbar-actions{overflow-x:hidden!important;overflow-y:hidden!important;scrollbar-width:none!important;}
-.topbar-actions::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}
-@media(max-width:1200px){.topbar-filters{display:flex!important;max-width:none!important}.topbar-info{max-width:210px}.fsearch{width:135px!important}.fsel{max-width:112px!important}}
-@media(max-width:980px){.topbar-filters{display:none!important}}
+.topbar{overflow:hidden!important;}.topbar-filters{overflow-x:hidden!important;overflow-y:hidden!important;scrollbar-width:none!important;flex-wrap:nowrap!important;min-width:0!important;}.topbar-filters::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}.topbar-filters .fsearch,.topbar-filters .fsel{min-width:0!important;}.topbar-actions{overflow-x:hidden!important;overflow-y:hidden!important;scrollbar-width:none!important;}.topbar-actions::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}
+.chart-subtitle{font-size:9.3px;line-height:1.35;color:var(--muted);margin:-7px 0 9px 0;letter-spacing:.1px;font-weight:500;}.card-hd + .chart-subtitle{display:block;}.score-num{font-size:22px!important;}.legend{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:10px}.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+@media(max-width:1200px){.topbar-filters{display:flex!important;max-width:none!important}.topbar-info{max-width:210px}.fsearch{width:135px!important}.fsel{max-width:112px!important}}@media(max-width:980px){.topbar-filters{display:none!important}.chart-subtitle{font-size:8.8px}}
 
 </style>
 </head>
@@ -474,6 +453,7 @@ body.light .page-title{color:var(--text);}
     <div class="nav-section">Principal</div>
     <div class="nav-item active" data-page="visao" data-tip="Visão Geral" onclick="nav('visao',this)"><span class="ni">🏠</span><span class="nav-label">Visão Geral</span></div>
     <div class="nav-section">OTD</div>
+    <div class="nav-item" data-page="volume" data-tip="Por Volume" onclick="nav('volume',this)"><span class="ni">📦</span><span class="nav-label">Por Volume</span></div>
     <div class="nav-item" data-page="dealer" data-tip="Por Dealer" onclick="nav('dealer',this)"><span class="ni">🏪</span><span class="nav-label">Por Dealer</span></div>
     <div class="nav-item" data-page="tsp" data-tip="Transportadora" onclick="nav('tsp',this)"><span class="ni">🚚</span><span class="nav-label">Transportadora</span></div>
     <div class="nav-item" data-page="uf" data-tip="Por UF" onclick="nav('uf',this)"><span class="ni">📍</span><span class="nav-label">Por UF</span></div>
@@ -579,6 +559,25 @@ body.light .page-title{color:var(--text);}
         <div class="card"><div class="card-hd">🌎 Volume por Região</div><div class="cw" style="height:200px"><canvas id="c-visao-reg"></canvas></div></div>
       </div>
       <div class="card g1"><div class="card-hd">🔍 Detalhamento de NFs<div class="hd-right"><span class="hd-badge" id="nf-count-lbl"></span></div></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>NF</th><th>Transportadora</th><th>Dealer</th><th>UF</th><th>Destinatário</th><th>Status</th><th>Emissão</th><th>Previsão</th><th>Entrega</th></tr></thead><tbody id="tb-nf-detail"></tbody></table></div><div class="pager"><button class="pager-btn" id="nf-prev" onclick="changePage('nf',-1)">← Anterior</button><span class="pager-info" id="nf-pinfo"></span><button class="pager-btn" id="nf-next" onclick="changePage('nf',1)">Próxima →</button></div></div>
+    </div>
+
+
+    <!-- VOLUME -->
+    <div class="page" id="page-volume">
+      <div class="kpi-row c4" id="kpi-volume"></div>
+      <div class="g2">
+        <div class="card"><div class="card-hd">📈 Evolução OTD por Volume</div><div class="cw" style="height:290px"><canvas id="c-volume-line"></canvas></div></div>
+        <div class="card"><div class="card-hd">📦 Volumes NP x FP por Mês</div><div class="cw" style="height:290px"><canvas id="c-volume-npfp"></canvas></div></div>
+      </div>
+      <div class="g2">
+        <div class="card"><div class="card-hd">🚚 Ranking TSP por OTD Volume<span class="hd-badge">Clique</span></div><div class="cw" style="height:310px"><canvas id="c-volume-tsp"></canvas></div></div>
+        <div class="card"><div class="card-hd">📍 Ranking UF por OTD Volume<span class="hd-badge">Clique</span></div><div class="cw" style="height:310px"><canvas id="c-volume-uf"></canvas></div></div>
+      </div>
+      <div class="g2">
+        <div class="card"><div class="card-hd">🍩 Participação Volume Finalizado por TSP<span class="hd-badge">Clique</span></div><div class="cw" style="height:320px"><canvas id="c-volume-rosca"></canvas></div></div>
+        <div class="card"><div class="card-hd">🔥 Heatmap OTD Volume TSP × Mês<span class="hd-badge">Clique nas células</span></div><div class="heat-wrap" id="ht-volume-tsp-mes"></div></div>
+      </div>
+      <div class="card g1"><div class="card-hd">📋 Detalhe por Transportadora — Volume</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>TSP</th><th>Vol. Total</th><th>Vol. Entregue NP</th><th>Vol. FP</th><th>Vol. Pendente</th><th>OTD Volume</th></tr></thead><tbody id="tb-volume-tsp"></tbody></table></div></div>
     </div>
 
     <!-- DEALER -->
@@ -701,7 +700,7 @@ body.light .page-title{color:var(--text);}
     <div class="page" id="page-kpiadv">
       <div class="kpi-row c4" id="kpi-adv"></div>
       <div class="g2">
-        <div class="card"><div class="card-hd">🎯 Eficiência TSP (Bubble)</div><div class="cw" style="height:280px"><canvas id="c-adv-bubble"></canvas></div></div>
+        <div class="card"><div class="card-hd">🎯 Eficiência TSP (Rosca)</div><div class="cw" style="height:280px"><canvas id="c-adv-bubble"></canvas></div></div>
         <div class="card"><div class="card-hd">🔥 Heatmap OTD TSP × Mês</div><div style="overflow-x:auto"><div id="ht-tsp-mes"></div></div></div>
       </div>
       <div class="card g1"><div class="card-hd">🏆 Ranking Completo com Risco</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Dealer</th><th>UF</th><th>TSP</th><th>Finalizadas</th><th>No Prazo</th><th>Fora Prazo</th><th>Pend.</th><th>OTD %</th><th>Gap</th><th>Risco</th></tr></thead><tbody id="tb-adv"></tbody></table></div></div>
@@ -731,7 +730,7 @@ const META=98,WARN=88;
 const COLORS=['#e63946','#38c4f0','#2ecc71','#f4a620','#a855f7','#1d6be6','#ff6b74','#ffd166','#06d6a0','#ef476f','#118ab2','#ffc8dd'];
 const MONTHS={1:'Jan',2:'Fev',3:'Mar',4:'Abr',5:'Mai',6:'Jun',7:'Jul',8:'Ago',9:'Set',10:'Out',11:'Nov',12:'Dez'};
 const REGIAO={AC:'Norte',AM:'Norte',AP:'Norte',PA:'Norte',RO:'Norte',RR:'Norte',TO:'Norte',AL:'Nordeste',BA:'Nordeste',CE:'Nordeste',MA:'Nordeste',PB:'Nordeste',PE:'Nordeste',PI:'Nordeste',RN:'Nordeste',SE:'Nordeste',DF:'Centro-Oeste',GO:'Centro-Oeste',MS:'Centro-Oeste',MT:'Centro-Oeste',ES:'Sudeste',MG:'Sudeste',RJ:'Sudeste',SP:'Sudeste',PR:'Sul',RS:'Sul',SC:'Sul'};
-const PAGE_NAMES={visao:'Visão Geral',dealer:'OTD por Dealer',tsp:'Por Transportadora',uf:'Por UF',dia:'Por Dia',mapa:'Mapa Brasil',tendencia:'Tendência & ML',comparativo:'Comparativo TSP',semanal:'Visão Semanal',drivers:'Ocorrências',especial:'Gráficos Especiais',insights:'Insights Inteligentes',kpiadv:'KPIs Avançados',network:'Network'};
+const PAGE_NAMES={visao:'Visão Geral',volume:'Por Volume',dealer:'OTD por Dealer',tsp:'Por Transportadora',uf:'Por UF',dia:'Por Dia',mapa:'Mapa Brasil',tendencia:'Tendência & ML',comparativo:'Comparativo TSP',semanal:'Visão Semanal',drivers:'Ocorrências',especial:'Gráficos Especiais',insights:'Insights Inteligentes',kpiadv:'KPIs Avançados',network:'Network'};
 
 let RAW=[],DATA=[],CHARTS={},GEO=null,LEAFLET_MAP=null;
 let PAGES={nf:{cur:1,size:12},dealer:{cur:1,size:15}};
@@ -886,14 +885,12 @@ function splitCSVLine(line,sep){
 // ══════════════════════════════════════
 //  DATE PARSER — M/D/YYYY, DD/MM/YYYY, YYYY-MM-DD
 // ══════════════════════════════════════
-/* FIX DATA BR DD/MM: Data emissão NF deve ser interpretada como DD/MM/YYYY */
+/* FIX AUDITADO: datas BR em DD/MM/YYYY */
 function parseDate(s){
   if(!s)return null;
   s=s.trim();
   let m;
-  // ISO: YYYY-MM-DD
   if((m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/)))return new Date(+m[1],+m[2]-1,+m[3]);
-  // CSV Brasil: DD/MM/YYYY. Ex.: 01/04/2026 = 1º de abril, não 4 de janeiro.
   if((m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/))){
     const d=+m[1],mo=+m[2],y=m[3].length===2?2000+(+m[3]):+m[3];
     if(d<1||d>31||mo<1||mo>12)return null;
@@ -935,8 +932,9 @@ function enrichRow(r){
   r._isFP=/ENTREGUE FORA/i.test(st);
   r._isPNP=/PENDENTE NO PRAZO/i.test(st);
   r._isPFP=/PENDENTE FORA/i.test(st);
-  r._isFin=(r['Status Final']||'').trim()==='Entrega Finalizada';
-  r._isPend=(r['Status Final']||'').trim()==='Entrega Pendente';
+  // FIX AUDITADO OTD: finalizada/pendente calculadas pela coluna Status.
+  r._isFin=r._isNP||r._isFP;
+  r._isPend=r._isPNP||r._isPFP;
   r._uf=(r['UF Destino']||'').trim().toUpperCase();
   r._regiao=REGIAO[r._uf]||'Outros';
   r._tsp=(r['TRANSPORTADORA']||'').trim().toUpperCase();
@@ -945,7 +943,11 @@ function enrichRow(r){
   r._dest=(r['Destinatário']||'').trim();
   r._cidade=(r['Cidade Destino']||'').trim();
   r._nf=pickNF(r);
-  r._vols=parseFloat((r['Qtde. Volumes']||'0').replace(',','.'))||0;
+  r._vols=parseFloat(String(r['Qtde. Volumes']||'0').replace(/\./g,'').replace(',','.'))||0;
+  // FIX POR VOLUME: mês operacional por Previsão de Entrega/Mês_Previsao.
+  const dPrev=parseDate(r['Previsão de Entrega']);
+  const mesPrev=parseInt(r['Mês_Previsao']||'',10);
+  r._mesVol=dPrev?dPrev.getMonth()+1:(!isNaN(mesPrev)?mesPrev:null);
   r._oc=normOC(r['Ocorrência Entrega']||'');
   r._id=r._dealer||r._dest;
   const d=parseDate(r['Data emissão NF']);
@@ -1055,6 +1057,13 @@ function applyFilters(){
   updateSub();
 }
 function updateSub(){
+  const active=document.querySelector('.page.active');
+  if(active&&active.id==='page-volume'){
+    const rows=getVolumeRows();const s=statsVol(rows);
+    const meses=[...new Set(rows.map(r=>r._mesVol).filter(Boolean))].sort((a,b)=>a-b).map(m=>MONTHS[m]);
+    document.getElementById('pg-sub').textContent=`${meses.join(', ')} · ${fmtN(Math.round(s.volTotal))} volumes · OTD Volume ${s.otdVol!==null?s.otdVol.toFixed(1).replace('.',',')+'%':'--'}`;
+    return;
+  }
   const s=stats(DATA);
   const meses=[...new Set(DATA.map(r=>r._mes).filter(Boolean))].sort((a,b)=>a-b).map(m=>MONTHS[m]);
   document.getElementById('pg-sub').textContent=`${meses.join(', ')} · ${fmtN(DATA.length)} NFs · OTD ${s.otd!==null?s.otd.toFixed(1)+'%':'--'}`;
@@ -1069,16 +1078,43 @@ function stats(rows){
   const fp=rows.filter(r=>r._isFP).length;
   const pnp=rows.filter(r=>r._isPNP).length;
   const pfp=rows.filter(r=>r._isPFP).length;
-  // FIX OTD >100: usar a mesma coluna Status para numerador e denominador.
-  // Finalizadas = Entregue No Prazo + Entregue Fora do Prazo.
-  // Pendentes = Pendente No Prazo + Pendente Fora do Prazo.
-  // Antes misturava Status no numerador com Status Final no denominador; quando Status Final vinha inconsistente,
-  // UF podia passar de 100%.
   const fin=np+fp;
   const pend=pnp+pfp;
   const vols=rows.reduce((s,r)=>s+r._vols,0);
   const otd=fin>0?Math.min(100,Math.round(np/fin*1000)/10):null;
   return{np,fp,pnp,pfp,fin,pend,total:rows.length,otd,vols:Math.round(vols)};
+}
+function statsVol(rows){
+  const volNP=rows.reduce((s,r)=>s+(r._isNP?r._vols:0),0);
+  const volFP=rows.reduce((s,r)=>s+(r._isFP?r._vols:0),0);
+  const volPNP=rows.reduce((s,r)=>s+(r._isPNP?r._vols:0),0);
+  const volPFP=rows.reduce((s,r)=>s+(r._isPFP?r._vols:0),0);
+  const volTotal=rows.reduce((s,r)=>s+r._vols,0);
+  const volFin=volNP+volFP;
+  const volPend=volPNP+volPFP;
+  const otdVol=volFin>0?Math.min(100,Math.round(volNP/volFin*1000)/10):null;
+  return{volNP,volFP,volPNP,volPFP,volTotal,volFin,volPend,otdVol,total:rows.length};
+}
+function getVolumeRows(){
+  const mes=document.getElementById('f-mes')?.value;
+  const reg=document.getElementById('f-regiao')?.value;
+  const tsp=document.getElementById('f-tsp')?.value;
+  const uf=document.getElementById('f-uf')?.value;
+  const st=document.getElementById('f-status')?.value;
+  return RAW.filter(r=>{
+    if(mes&&r._mesVol!=mes)return false;
+    if(reg&&r._regiao!==reg)return false;
+    if(tsp&&r._tsp!==tsp)return false;
+    if(uf&&r._uf!==uf)return false;
+    if(st==='np'&&!r._isNP)return false;
+    if(st==='fp'&&!r._isFP)return false;
+    if(st==='pnp'&&!r._isPNP)return false;
+    if(st==='pfp'&&!r._isPFP)return false;
+    if(st==='fin'&&!r._isFin)return false;
+    if(st==='pend'&&!r._isPend)return false;
+    if(SEARCH){const t=[r._nf,r._id,r._dealer,r._dest,r._tsp,r._uf,r._cidade,r.Status||''].join(' ').toLowerCase();if(!t.includes(SEARCH))return false;}
+    return true;
+  });
 }
 function otdColor(v){if(v===null)return'#6b7a99';v=Math.min(100,v);if(v>=META)return'#2ecc71';if(v>=WARN)return'#f4a620';return'#e63946';}
 function otdPill(v){if(v===null)return'<span class="pill info">—</span>';const c=v>=META?'ok':v>=WARN?'warn':'danger';return`<span class="pill ${c}">${v.toFixed(1).replace('.',',')}%</span>`;}
@@ -1144,23 +1180,14 @@ function mkChart(id,cfg){
   if(!el)return null;
   try{
     const existing=CHARTS[id] || (window.Chart && Chart.getChart ? Chart.getChart(el) : null);
-    if(existing){
-      try{existing.stop?.();}catch(e){}
-      try{existing.destroy?.();}catch(e){console.warn('Chart destroy:',id,e);}
-    }
+    if(existing){try{existing.stop?.();}catch(e){} try{existing.destroy?.();}catch(e){console.warn('Chart destroy:',id,e);}}
     delete CHARTS[id];
-    // Remove listeners antigos do Chart.js presos ao canvas anterior.
-    // Isso evita o erro chart.umd "Cannot read properties of undefined (reading handleEvent)".
     const fresh=el.cloneNode(false);
     el.parentNode.replaceChild(fresh,el);
     el=fresh;
     CHARTS[id]=new Chart(el,cfg);
     return CHARTS[id];
-  }catch(e){
-    console.warn('Erro ao criar gráfico',id,e);
-    delete CHARTS[id];
-    return null;
-  }
+  }catch(e){console.warn('Erro ao criar gráfico',id,e);delete CHARTS[id];return null;}
 }
 function baseOpts(){
   return{
@@ -1219,7 +1246,7 @@ function kpi(label,val,sub,valCls,acCls,icon,delta,spark){
 function scoreRing(v){
   const r=52,c=2*Math.PI*r,fill=c*(v/100),col=otdColor(v);
   const lbl=v>=META?'Excelente':v>=90?'Bom':v>=80?'Regular':'Crítico';
-  return`<div class="score-ring" style="width:120px;height:120px"><svg class="score-ring-svg" width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" stroke="var(--border2)" stroke-width="10" fill="none"/><circle cx="60" cy="60" r="52" stroke="${col}" stroke-width="10" fill="none" stroke-dasharray="${fill.toFixed(2)} ${c.toFixed(2)}" stroke-linecap="round" style="filter:drop-shadow(0 0 6px ${col}66)"/></svg><div class="score-ring-txt"><div class="score-num" style="color:${col}">${v.toFixed(0)}</div><div class="score-lbl">${lbl}</div></div></div>`;
+  return`<div class="score-ring" style="width:120px;height:120px"><svg class="score-ring-svg" width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" stroke="var(--border2)" stroke-width="10" fill="none"/><circle cx="60" cy="60" r="52" stroke="${col}" stroke-width="10" fill="none" stroke-dasharray="${fill.toFixed(2)} ${c.toFixed(2)}" stroke-linecap="round" style="filter:drop-shadow(0 0 6px ${col}66)"/></svg><div class="score-ring-txt"><div class="score-num" style="color:${col}">${v.toFixed(1).replace('.',',')}%</div><div class="score-lbl">${lbl}</div></div></div>`;
 }
 
 // ══════════════════════════════════════
@@ -1417,7 +1444,7 @@ function renderPage(){
   if(!DATA.length)return;
   const pg=document.querySelector('.page.active');if(!pg)return;
   const id=pg.id.replace('page-','');
-  const fn={visao:renderVisao,dealer:renderDealer,tsp:renderTSP,uf:renderUF,dia:renderDia,mapa:renderMapa,tendencia:renderTend,comparativo:renderComp,semanal:renderSemanal,drivers:renderDrivers,especial:renderEspecial,insights:renderInsights,kpiadv:renderKPIAdv,network:renderNetwork};
+  const fn={visao:renderVisao,volume:renderVolume,dealer:renderDealer,tsp:renderTSP,uf:renderUF,dia:renderDia,mapa:renderMapa,tendencia:renderTend,comparativo:renderComp,semanal:renderSemanal,drivers:renderDrivers,especial:renderEspecial,insights:renderInsights,kpiadv:renderKPIAdv,network:renderNetwork};
   if(fn[id])fn[id]();
   updateSub();
 }
@@ -1494,6 +1521,84 @@ function renderNFDetail(){
   }).join('');
   document.getElementById('nf-count-lbl').textContent=fmtN(DATA.length)+' NFs';
   setPager('nf',pg.cur,DATA.length);
+}
+
+
+
+// ══════════════════════════════════════
+//  RENDER: OTD POR VOLUME
+// ══════════════════════════════════════
+function drawerVolume(title,sub,rows){
+  const s=statsVol(rows);
+  const body=`<div class="kpi-row c2" style="margin-bottom:12px">
+    ${kpi('OTD Volume',s.otdVol!==null?s.otdVol.toFixed(1).replace('.',',')+'%':'—','Vol. NP / (Vol. NP + Vol. FP)',s.otdVol>=META?'c-green':s.otdVol>=WARN?'c-yellow':'c-red',s.otdVol>=META?'green':s.otdVol>=WARN?'yellow':'red')}
+    ${kpi('Vol. NP',fmtN(Math.round(s.volNP)),'entregue no prazo','c-green','green')}
+    ${kpi('Vol. FP',fmtN(Math.round(s.volFP)),'fora do prazo','c-red','red')}
+    ${kpi('Vol. Pendente',fmtN(Math.round(s.volPend)),'em aberto','c-yellow','yellow')}
+  </div>
+  <table class="tbl"><thead><tr><th>Status Volume</th><th>Volumes</th></tr></thead><tbody>
+    <tr><td>Entregue No Prazo</td><td>${fmtN(Math.round(s.volNP))}</td></tr>
+    <tr><td>Entregue Fora do Prazo</td><td style="color:var(--red)">${fmtN(Math.round(s.volFP))}</td></tr>
+    <tr><td>Pendente No Prazo</td><td>${fmtN(Math.round(s.volPNP))}</td></tr>
+    <tr><td>Pendente Fora</td><td style="color:var(--red)">${fmtN(Math.round(s.volPFP))}</td></tr>
+  </tbody></table>`;
+  openDrawer(title,sub,body);
+}
+function drawerVolumeTSP(t){const rows=getVolumeRows().filter(r=>r._tsp===t);drawerVolume('Por Volume — '+t,'Métrica apenas por Qtde. Volumes',rows);}
+function drawerVolumeUF(u){const rows=getVolumeRows().filter(r=>r._uf===u);drawerVolume('Por Volume — UF '+u,'Métrica apenas por Qtde. Volumes',rows);}
+function drawerVolumeTSPMonth(t,m){const rows=getVolumeRows().filter(r=>r._tsp===t&&r._mesVol===m);drawerVolume('Por Volume — '+t+' · '+MONTHS[m],'Mês por Previsão de Entrega',rows);}
+function volumeBarLabel(){return{display:true,color:tc(),font:{family:'Inter',size:9,weight:'700'},anchor:'end',align:'right',formatter:v=>v!==null&&v!==undefined?fmtN(Math.round(v)):''};}
+function volumePctLabel(){return{display:true,color:tc(),font:{family:'Inter',size:9,weight:'700'},anchor:'end',align:'right',formatter:v=>v!==null&&v!==undefined?v.toFixed(1).replace('.',',')+'%':''};}
+function renderVolumeHT(containerId,rowKeys,rowLabel,meses,rowsBase){
+  const el=document.getElementById(containerId);if(!el)return;
+  let h=`<table class="ht"><tr><th style="text-align:left;padding:5px 8px;white-space:nowrap">${rowLabel}</th>${meses.map(m=>`<th>${MONTHS[m]}</th>`).join('')}</tr>`;
+  rowKeys.forEach(key=>{
+    h+=`<tr><td style="text-align:left;padding:5px 8px;font-weight:700;color:var(--text);white-space:nowrap">${key}</td>`;
+    meses.forEach(m=>{
+      const rows=rowsBase.filter(r=>r._tsp===key&&r._mesVol===m);
+      const s=statsVol(rows),otd=s.otdVol;
+      const bg=otd===null?'rgba(107,122,153,0.07)':otd>=META?'rgba(46,204,113,.2)':otd>=WARN?'rgba(244,166,32,.2)':'rgba(230,57,70,.2)';
+      const col=otd===null?'var(--dim)':otdColor(otd);
+      h+=`<td class="clickable" onclick="drawerVolumeTSPMonth('${key.replace(/'/g,"\\'")}',${m})" style="background:${bg};color:${col};border-radius:4px" title="Vol. NP: ${fmtN(Math.round(s.volNP))} · Vol. FP: ${fmtN(Math.round(s.volFP))}">${otd!==null?otd.toFixed(1).replace('.',',')+'%':'—'}</td>`;
+    });h+='</tr>';
+  });
+  h+='</table><div class="legend" style="margin-top:8px"><span><i style="background:#2ecc71"></i>≥ Meta</span><span><i style="background:#f4a620"></i>Atenção</span><span><i style="background:#e63946"></i>Crítico</span></div>';
+  el.innerHTML=h;
+}
+function renderVolume(){
+  const rows=getVolumeRows();
+  const s=statsVol(rows);
+  document.getElementById('kpi-volume').innerHTML=
+    kpi('Total Volumes',fmtN(Math.round(s.volTotal)),'mês por Previsão de Entrega','c-white','blue','📦')
+    +kpi('Total Entregue no Prazo',fmtN(Math.round(s.volNP)),'volumes NP','c-green','green','✅')
+    +kpi('OTD por Volume',s.otdVol!==null?s.otdVol.toFixed(1).replace('.',',')+' %':'—','Vol. NP / (Vol. NP + Vol. FP)',s.otdVol>=META?'c-green':s.otdVol>=WARN?'c-yellow':'c-red',s.otdVol>=META?'green':s.otdVol>=WARN?'yellow':'red','🎯')
+    +kpi('Vol. Fora Prazo',fmtN(Math.round(s.volFP)),'volumes atrasados','c-red','red','⚠️');
+
+  const byMes=groupBy(rows.filter(r=>r._mesVol),r=>r._mesVol);
+  const meses=Object.keys(byMes).map(Number).sort((a,b)=>a-b);
+  const mStats=meses.map(m=>({m,...statsVol(byMes[m])}));
+  const b=baseOpts();
+  const leg={legend:{display:true,labels:{color:mc(),font:{family:'Inter',size:10},boxWidth:10}}};
+  mkChart('c-volume-line',{type:'line',data:{labels:meses.map(m=>MONTHS[m]),datasets:[{label:'OTD Volume %',data:mStats.map(x=>x.otdVol),borderColor:'#38c4f0',backgroundColor:'#38c4f033',fill:true,tension:.35,pointRadius:4}]},options:{...b,plugins:{...b.plugins,...leg,datalabels:{display:true,color:tc(),font:{family:'Inter',size:9,weight:'700'},align:'top',formatter:v=>v!==null?v.toFixed(1).replace('.',',')+'%':''},tooltip:{...b.plugins.tooltip,callbacks:{label:ctx=>'OTD Volume: '+(ctx.parsed.y!==null?ctx.parsed.y.toFixed(1).replace('.',',')+'%':'—')}}},scales:{...b.scales,y:{...b.scales.y,min:0,max:100,ticks:{...b.scales.y.ticks,callback:v=>v+'%'}}}}});
+  mkChart('c-volume-npfp',{type:'bar',data:{labels:meses.map(m=>MONTHS[m]),datasets:[{label:'Vol. NP',data:mStats.map(x=>Math.round(x.volNP)),backgroundColor:'#2ecc71cc'},{label:'Vol. FP',data:mStats.map(x=>Math.round(x.volFP)),backgroundColor:'#e63946cc'}]},options:{...b,plugins:{...b.plugins,...leg,datalabels:volumeBarLabel()},scales:{...b.scales,x:{...b.scales.x,stacked:false},y:{...b.scales.y,ticks:{...b.scales.y.ticks,callback:v=>fmtN(v)}}}}});
+
+  const byTSP=groupBy(rows,r=>r._tsp);
+  const tsp=Object.entries(byTSP).map(([t,v])=>({t,...statsVol(v)})).filter(x=>x.volFin>0).sort((a,b)=>a.otdVol-b.otdVol);
+  const tspWorst=tsp.slice(0,15);
+  mkChart('c-volume-tsp',{type:'bar',data:{labels:tspWorst.map(x=>x.t),datasets:[{label:'OTD Volume %',data:tspWorst.map(x=>x.otdVol),backgroundColor:tspWorst.map(x=>otdColor(x.otdVol)+'cc'),borderRadius:6}]},options:{...b,indexAxis:'y',onClick:(e,els)=>{if(els.length)drawerVolumeTSP(tspWorst[els[0].index].t);},plugins:{...b.plugins,...leg,datalabels:volumePctLabel()},scales:{x:{...b.scales.x,min:0,max:100,ticks:{...b.scales.x.ticks,callback:v=>v+'%'}},y:{...b.scales.y}}}});
+
+  const byUF=groupBy(rows,r=>r._uf);
+  const uf=Object.entries(byUF).map(([u,v])=>({u,...statsVol(v)})).filter(x=>x.volFin>0).sort((a,b)=>a.otdVol-b.otdVol);
+  const ufWorst=uf.slice(0,15);
+  mkChart('c-volume-uf',{type:'bar',data:{labels:ufWorst.map(x=>x.u),datasets:[{label:'OTD Volume %',data:ufWorst.map(x=>x.otdVol),backgroundColor:ufWorst.map(x=>otdColor(x.otdVol)+'cc'),borderRadius:6}]},options:{...b,indexAxis:'y',onClick:(e,els)=>{if(els.length)drawerVolumeUF(ufWorst[els[0].index].u);},plugins:{...b.plugins,...leg,datalabels:volumePctLabel()},scales:{x:{...b.scales.x,min:0,max:100,ticks:{...b.scales.x.ticks,callback:v=>v+'%'}},y:{...b.scales.y}}}});
+
+  const tspVol=Object.entries(byTSP).map(([t,v])=>({t,...statsVol(v)})).filter(x=>x.volFin>0).sort((a,b)=>b.volFin-a.volFin);
+  const totalFin=tspVol.reduce((a,x)=>a+x.volFin,0)||1;
+  mkChart('c-volume-rosca',{type:'doughnut',data:{labels:tspVol.map(x=>x.t),datasets:[{label:'Volume finalizado',data:tspVol.map(x=>Math.round(x.volFin)),backgroundColor:tspVol.map((x,i)=>COLORS[i%COLORS.length]+'cc'),borderColor:isDark()?'#0f1320':'#fff',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',onClick:(e,els)=>{if(els.length)drawerVolumeTSP(tspVol[els[0].index].t);},plugins:{legend:{display:true,position:'right',labels:{color:mc(),font:{family:'Inter',size:10},boxWidth:9,usePointStyle:true,pointStyle:'circle'}},datalabels:{color:'#fff',font:{family:'Inter',size:9,weight:'700'},formatter:v=>{const p=v/totalFin*100;return p>=6?p.toFixed(0)+'%':'';}},tooltip:{backgroundColor:isDark()?'rgba(7,9,15,.96)':'rgba(255,255,255,.97)',titleColor:tc(),bodyColor:mc(),callbacks:{label:(ctx)=>{const d=tspVol[ctx.dataIndex];return `${d.t}: ${fmtN(Math.round(d.volFin))} volumes · OTD Vol. ${d.otdVol!==null?d.otdVol.toFixed(1).replace('.',',')+'%':'—'}`;}}}}}});
+
+  const tsps=[...new Set(rows.map(r=>r._tsp).filter(Boolean))].sort();
+  renderVolumeHT('ht-volume-tsp-mes',tsps,'TSP',meses,rows);
+  document.getElementById('tb-volume-tsp').innerHTML=tspVol.map(x=>`<tr class="clickable" onclick="drawerVolumeTSP('${x.t.replace(/'/g,"\\'")}')"><td style="font-weight:700">${x.t}</td><td>${fmtN(Math.round(x.volTotal))}</td><td>${fmtN(Math.round(x.volNP))}</td><td style="color:var(--red)">${fmtN(Math.round(x.volFP))}</td><td style="color:var(--purple)">${fmtN(Math.round(x.volPend))}</td><td>${x.otdVol!==null?x.otdVol.toFixed(1).replace('.',',')+'%':'—'}</td></tr>`).join('');
 }
 
 // ══════════════════════════════════════
@@ -1963,5 +2068,35 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();if(e.key
   }catch(e){console.warn('IDB init:',e);}
 })();
 </script>
+
+<script>
+function addChartSubtitles(){
+  const subtitles={
+    'c-volume-line':'Linha = OTD por volume mensal · mês por Previsão de Entrega · Vol. NP / (Vol. NP + Vol. FP)',
+    'c-volume-npfp':'Barras = volumes entregues no prazo x fora do prazo · rótulos mostram Qtde. Volumes',
+    'c-volume-tsp':'Barra = OTD Volume por TSP · rótulos mostram % OTD Volume',
+    'c-volume-uf':'Barra = OTD Volume por UF · rótulos mostram % OTD Volume',
+    'c-volume-rosca':'Fatia = % do volume finalizado por TSP · OTD Volume no tooltip',
+    'ht-volume-tsp-mes':'Célula = OTD Volume mensal por TSP · clique para detalhe',
+    'c-adv-bubble':'Fatia = % do volume finalizado por TSP · OTD = NP / (NP + FP)',
+    'ht-tsp-mes':'Célula = OTD mensal por TSP · fórmula: NP / (NP + FP)',
+    'c-visao-line':'Linha = OTD mensal · fórmula: NP / (NP + FP)',
+    'c-visao-tsp':'Barra = OTD por TSP · fórmula: NP / (NP + FP)',
+    'c-visao-uf':'Barra = OTD por UF · fórmula: NP / (NP + FP)',
+    'c-dealer-bar':'Barra = OTD por dealer · fórmula: NP / (NP + FP)',
+    'c-tsp-bar':'Barra = OTD por TSP · fórmula: NP / (NP + FP)',
+    'c-tsp-dual':'Barras = volume de NFs · Linha = OTD · fórmula: NP / (NP + FP)',
+    'c-uf-bar':'Barra = OTD por UF · fórmula: NP / (NP + FP)',
+    'c-uf-dual':'Barras = volume de NFs · Linha = OTD · fórmula: NP / (NP + FP)',
+    'c-dia-line':'Linha = OTD diário · fórmula: NP / (NP + FP)',
+    'leaflet-map':'Cor do estado = OTD da UF · fórmula: NP / (NP + FP)',
+    'ht-uf-mes':'Célula = OTD mensal por UF · fórmula: NP / (NP + FP)'
+  };
+  Object.entries(subtitles).forEach(([id,text])=>{const el=document.getElementById(id);if(!el)return;const card=el.closest('.card');if(!card)return;const hd=card.querySelector('.card-hd');if(!hd)return;if(hd.nextElementSibling&&hd.nextElementSibling.classList&&hd.nextElementSibling.classList.contains('chart-subtitle'))return;const sub=document.createElement('div');sub.className='chart-subtitle';sub.textContent=text;hd.insertAdjacentElement('afterend',sub);});
+}
+document.addEventListener('DOMContentLoaded',addChartSubtitles);window.addEventListener('load',addChartSubtitles);
+</script>
+
 </body>
 </html>
+
