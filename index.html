@@ -546,7 +546,7 @@ body.light .page-title{color:var(--text);}
       <div class="empty-title">Control Tower</div>
       <div class="empty-sub">Central de inteligência operacional CEVA | Hyundai Mobis. Importe o arquivo BASE_OTD.csv para monitorar performance em tempo real.</div>
       <div class="empty-actions">
-        <label class="btn primary" style="font-size:13px;padding:10px 22px;border-radius:9px">⬆ Importar BASE_OTD.csv<input type="file" accept=".csv" id="csv-file2"></label>
+        <label class="btn primary" style="font-size:13px;padding:10px 22px;border-radius:9px">⬆ Importar CSV manual<input type="file" accept=".csv" id="csv-file2"></label>
       </div>
     </div>
 
@@ -1965,183 +1965,84 @@ window.addEventListener('resize',()=>{clearTimeout(window._rt);window._rt=setTim
 window.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();if(e.key==='F11'){e.preventDefault();enterPresent();}});
 
 
+// PATCH v9 AUTOLOAD — carrega automaticamente ./data/base_otd.csv ao abrir o dashboard
+const AUTO_CSV_URL = './data/base_otd.csv';
+let AUTO_LOAD_DONE = false;
 
-// PATCH v8 EARLY — IndexedDB sem upgrade forçado, evita onblocked por aba/cache antigo
-(function(){
-  'use strict';
-  if (window.__CEVA_PATCH_V8_EARLY__) return;
-  window.__CEVA_PATCH_V8_EARLY__ = true;
+async function processCSVTextV9(text, sourceLabel){
+  const raw = parseCSV(text);
+  const rows = raw.map(enrichRow);
+  if(!rows.length) throw new Error('Nenhuma linha válida encontrada na base automática.');
 
-  function clearTopSubtitleV8(){
-    const el = document.getElementById('pg-sub');
-    if (el) el.textContent = '';
+  RAW = rows;
+  populateFilters();
+  DATA = [...RAW];
+
+  applyURLParams();
+  showDashboard();
+  renderPage();
+  checkAlertBanner();
+  updateOpHeader();
+
+  const msg = `✓ ${sourceLabel} — ${rows.length.toLocaleString('pt-BR')} registros carregados`;
+  setImportBar('ok', msg);
+  setTimeout(hideImportBar, 4500);
+
+  try { await saveIDB(rows); } catch(e) { console.warn('IDB save auto:', e); }
+  AUTO_LOAD_DONE = true;
+  return rows;
+}
+
+async function autoLoadOfficialCSV(){
+  try{
+    setImportBar('loading', 'Carregando base oficial automaticamente...');
+
+    const url = AUTO_CSV_URL + '?v=' + Date.now();
+    const response = await fetch(url, { cache: 'no-store' });
+
+    if(!response.ok){
+      throw new Error(`Base oficial não encontrada (${response.status}).`);
+    }
+
+    const text = await response.text();
+    if(!text || text.trim().length < 20){
+      throw new Error('Base oficial vazia ou inválida.');
+    }
+
+    return await processCSVTextV9(text, 'Base oficial carregada automaticamente');
+  }catch(err){
+    console.warn('Auto load CSV:', err);
+    return null;
   }
-  window.updateSub = updateSub = function(){ clearTopSubtitleV8(); };
-
-  const DB_NAME = 'ceva_ct';
-  const STORE = 'data';
-  const KEY = 'rows';
-  let dbPromise = null;
-
-  function storageAllowed(){
-    try { return !!window.indexedDB && location.protocol !== 'file:'; }
-    catch(_) { return false; }
-  }
-
-  function requestToPromise(req){
-    return new Promise((resolve, reject) => {
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error || new Error('IndexedDB request failed'));
-    });
-  }
-
-  async function discoverCurrentVersion(){
-    // Abre sem versão: não dispara upgrade e, portanto, não entra em onblocked por versionchange.
-    const db = await new Promise((resolve) => {
-      let req;
-      try { req = indexedDB.open(DB_NAME); }
-      catch(e){ console.warn('IDB open sem versão bloqueado:', e); resolve(null); return; }
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => resolve(null);
-      req.onblocked = () => resolve(null);
-    });
-    if (!db) return 1;
-    const version = db.version || 1;
-    try { db.close(); } catch(_) {}
-    return version;
-  }
-
-  async function openWithVersion(version){
-    return await new Promise((resolve) => {
-      let req;
-      try { req = indexedDB.open(DB_NAME, version); }
-      catch(e){ console.warn('IDB open bloqueado:', e); resolve(null); return; }
-
-      req.onupgradeneeded = function(e){
-        const db = e.target.result;
-        if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE);
-      };
-      req.onsuccess = function(e){
-        const db = e.target.result;
-        db.onversionchange = function(){ try { db.close(); } catch(_) {} dbPromise = null; };
-        resolve(db);
-      };
-      req.onerror = function(){ console.warn('IDB open:', req.error); resolve(null); };
-      req.onblocked = function(){
-        // Não é erro funcional: outra aba ainda mantém conexão antiga. Seguimos sem persistência nesta sessão.
-        console.warn('IDB temporariamente bloqueado por outra aba/cache. Persistência local ignorada nesta sessão.');
-        resolve(null);
-      };
-    });
-  }
-
-  window.openDB = openDB = async function(){
-    if (!storageAllowed()) return null;
-    if (dbPromise) return dbPromise;
-
-    dbPromise = (async () => {
-      const currentVersion = await discoverCurrentVersion();
-      let db = await openWithVersion(currentVersion);
-
-      if (db && db.objectStoreNames.contains(STORE)) return db;
-
-      // Só força upgrade se realmente não existir objectStore.
-      if (db) { try { db.close(); } catch(_) {} }
-      db = await openWithVersion(currentVersion + 1);
-      return db;
-    })();
-
-    return dbPromise;
-  };
-
-  window.saveIDB = saveIDB = async function(rows){
-    const db = await openDB();
-    if (!db || !Array.isArray(rows) || !db.objectStoreNames.contains(STORE)) return false;
-
-    try{
-      const slim = rows.map(r => ({
-        _tsp:r._tsp,_uf:r._uf,_mes:r._mes,_dia:r._dia,_year:r._year,
-        _isNP:r._isNP,_isFP:r._isFP,_isPNP:r._isPNP,_isPFP:r._isPFP,
-        _isFin:r._isFin,_isPend:r._isPend,
-        _dealer:r._dealer,_dest:r._dest,_cidade:r._cidade,
-        _nf:r._nf,_vols:r._vols,_oc:r._oc,_id:r._id,_regiao:r._regiao,
-        Status:r.Status,
-        'Data emissão NF':r['Data emissão NF'],
-        'Previsão de Entrega':r['Previsão de Entrega'],
-        'Data de Entrega':r['Data de Entrega'],
-        'Status Final':r['Status Final'],
-        'Status_1':r['Status_1'],
-        'Qtde. Volumes':r['Qtde. Volumes'],
-        'Mês_Previsao':r['Mês_Previsao']
-      }));
-
-      await new Promise((resolve,reject)=>{
-        const tx = db.transaction(STORE,'readwrite');
-        const payload = {id:KEY, data:slim, at:new Date().toISOString(), patch:'v8-no-forced-upgrade'};
-        // Correção principal: chave explícita no put.
-        tx.objectStore(STORE).put(payload, KEY);
-        tx.oncomplete = () => resolve(true);
-        tx.onerror = () => reject(tx.error || new Error('Falha ao salvar IndexedDB'));
-        tx.onabort = () => reject(tx.error || new Error('Transação IndexedDB abortada'));
-      });
-
-      const bar=document.getElementById('idb-bar'), msg=document.getElementById('idb-msg');
-      if(msg) msg.textContent=`💾 ${slim.length.toLocaleString('pt-BR')} registros salvos · ${new Date().toLocaleString('pt-BR')}`;
-      if(bar) bar.classList.remove('hidden');
-      return true;
-    }catch(e){ console.warn('IDB save:', e); return false; }
-  };
-
-  window.loadIDB = loadIDB = async function(){
-    const db = await openDB();
-    if (!db || !db.objectStoreNames.contains(STORE)) return null;
-    try{
-      return await new Promise((resolve,reject)=>{
-        const tx = db.transaction(STORE,'readonly');
-        const r = tx.objectStore(STORE).get(KEY);
-        r.onsuccess = () => resolve(r.result || null);
-        r.onerror = () => reject(r.error || new Error('Falha ao carregar IndexedDB'));
-      });
-    }catch(e){ console.warn('IDB load:', e); return null; }
-  };
-
-  window.clearIDB = clearIDB = async function(){
-    try{
-      const db = await openDB();
-      if(db && db.objectStoreNames.contains(STORE)){
-        await new Promise((resolve,reject)=>{
-          const tx=db.transaction(STORE,'readwrite');
-          tx.objectStore(STORE).delete(KEY);
-          tx.oncomplete=()=>resolve(true);
-          tx.onerror=()=>reject(tx.error);
-        });
-      }
-    }catch(e){ console.warn('IDB clear:', e); }
-    RAW=[]; DATA=[];
-    document.getElementById('empty-state')?.classList.remove('hidden');
-    const pages=document.getElementById('pages'); if(pages) pages.style.display='none';
-    document.getElementById('idb-bar')?.classList.add('hidden');
-    if(typeof toast==='function') toast('🗑 Dados removidos');
-  };
-
-  document.addEventListener('DOMContentLoaded', clearTopSubtitleV8);
-  window.addEventListener('load', () => setTimeout(clearTopSubtitleV8, 100));
-})();
+}
 
 (async function init(){
-  loadPrefs();
-  try{
-    const saved=await loadIDB();
-    if(saved?.data?.length){
-      RAW=saved.data.map(r=>enrichRow({...r}));
-      populateFilters();DATA=[...RAW];
-      applyURLParams();showDashboard();renderPage();checkAlertBanner();updateOpHeader();
-      const bar=document.getElementById('idb-bar');
-      document.getElementById('idb-msg').textContent=`💾 ${RAW.length.toLocaleString('pt-BR')} registros restaurados · Salvo ${new Date(saved.at).toLocaleString('pt-BR')}`;
-      bar.classList.remove('hidden');
-      toast(`✅ ${RAW.length.toLocaleString('pt-BR')} registros restaurados`);
-    }
-  }catch(e){console.warn('IDB init:',e);}
+ loadPrefs();
+
+ // 1) Prioridade: carregar a base oficial do GitHub Pages automaticamente.
+ const autoRows = await autoLoadOfficialCSV();
+ if(autoRows && autoRows.length){
+   return;
+ }
+
+ // 2) Fallback: se a base oficial não existir/falhar, tenta restaurar do IndexedDB.
+ try{
+ const saved=await loadIDB();
+ if(saved?.data?.length){
+ RAW=saved.data.map(r=>enrichRow({...r}));
+ populateFilters();DATA=[...RAW];
+ applyURLParams();showDashboard();renderPage();checkAlertBanner();updateOpHeader();
+ const bar=document.getElementById('idb-bar');
+ document.getElementById('idb-msg').textContent=`💾 ${RAW.length.toLocaleString('pt-BR')} registros restaurados · Salvo ${new Date(saved.at).toLocaleString('pt-BR')}`;
+ bar.classList.remove('hidden');
+ toast(`✅ ${RAW.length.toLocaleString('pt-BR')} registros restaurados`);
+ return;
+ }
+ }catch(e){console.warn('IDB init:',e);}
+
+ // 3) Fallback final: usuário importa CSV manualmente.
+ setImportBar('error','Base oficial não encontrada em ./data/base_otd.csv. Use Importar CSV como alternativa.');
+ setTimeout(hideImportBar, 6500);
 })();
 </script>
 
@@ -2419,62 +2320,5 @@ document.addEventListener('click',e=>{
 })();
 </script>
 
-
-
-<!-- PATCH v8 FINAL — Chart.js lifecycle seguro + subtítulo oculto -->
-<script>
-(function(){
-  'use strict';
-  if (window.__CEVA_PATCH_V8_FINAL__) return;
-  window.__CEVA_PATCH_V8_FINAL__ = true;
-
-  function clearTopSubtitle(){ const el=document.getElementById('pg-sub'); if(el) el.textContent=''; }
-  window.updateSub = function(){ clearTopSubtitle(); };
-  const st=document.createElement('style');
-  st.textContent='.page-sub{display:none!important}.topbar-info{justify-content:center!important;}';
-  document.head.appendChild(st);
-
-  function bag(){ try{ if(typeof CHARTS!=='undefined' && CHARTS) return CHARTS; }catch(_){} window.__CEVA_CHARTS__=window.__CEVA_CHARTS__||{}; return window.__CEVA_CHARTS__; }
-  function destroyOne(id){
-    const b=bag(), arr=[];
-    if(b[id]) arr.push(b[id]);
-    const el=document.getElementById(id);
-    if(el && window.Chart && typeof Chart.getChart==='function'){
-      const c=Chart.getChart(el); if(c) arr.push(c);
-    }
-    [...new Set(arr)].forEach(c=>{try{c.destroy();}catch(e){console.warn('Chart destroy:',id,e);}});
-    delete b[id];
-  }
-  window.destroyDashboardCharts=function(){
-    Object.keys(bag()).forEach(destroyOne);
-    if(window.Chart && typeof Chart.getChart==='function'){
-      document.querySelectorAll('canvas').forEach(cv=>{const c=Chart.getChart(cv); if(c){try{c.destroy();}catch(_){}}});
-    }
-  };
-  window.mkChart=function(id,cfg){
-    const el=document.getElementById(id); if(!el || !window.Chart) return null;
-    destroyOne(id);
-    try{
-      cfg=cfg||{}; cfg.options=cfg.options||{};
-      cfg.options.responsive = cfg.options.responsive !== false;
-      cfg.options.maintainAspectRatio = cfg.options.maintainAspectRatio === true ? true : false;
-      cfg.options.animation = cfg.options.animation || false;
-      cfg.options.resizeDelay = cfg.options.resizeDelay || 120;
-      const c=new Chart(el.getContext('2d'),cfg); bag()[id]=c; return c;
-    }catch(e){ console.error('Erro ao renderizar gráfico',id,e); return null; }
-  };
-  window.addEventListener('error',function(ev){
-    const msg=String(ev.message||''), src=String(ev.filename||'');
-    if(src.toLowerCase().includes('chart') && msg.includes('handleEvent')){
-      console.warn('Evento tardio do Chart.js ignorado com segurança:',msg);
-      ev.preventDefault();
-    }
-  },true);
-  if(typeof window.nav==='function' && !window.nav.__v8FinalWrapped){const old=window.nav; window.nav=function(){try{window.destroyDashboardCharts?.();}catch(_){} const r=old.apply(this,arguments); setTimeout(clearTopSubtitle,0); setTimeout(clearTopSubtitle,200); return r;}; window.nav.__v8FinalWrapped=true;}
-  if(typeof window.renderPage==='function' && !window.renderPage.__v8FinalWrapped){const old=window.renderPage; window.renderPage=function(){const r=old.apply(this,arguments); setTimeout(clearTopSubtitle,0); setTimeout(clearTopSubtitle,200); return r;}; window.renderPage.__v8FinalWrapped=true;}
-  document.addEventListener('DOMContentLoaded',()=>{clearTopSubtitle();setTimeout(clearTopSubtitle,300);});
-  window.addEventListener('load',()=>{clearTopSubtitle();setTimeout(clearTopSubtitle,300);setTimeout(clearTopSubtitle,1000);});
-})();
-</script>
 </body>
 </html>
