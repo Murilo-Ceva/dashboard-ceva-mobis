@@ -1966,55 +1966,98 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();if(e.key
 
 
 
-// PATCH v7 EARLY — executa ANTES do init() para corrigir IndexedDB e subtítulo já na restauração inicial
+// PATCH v8 EARLY — IndexedDB sem upgrade forçado, evita onblocked por aba/cache antigo
 (function(){
   'use strict';
-  if (window.__CEVA_PATCH_V7_EARLY__) return;
-  window.__CEVA_PATCH_V7_EARLY__ = true;
+  if (window.__CEVA_PATCH_V8_EARLY__) return;
+  window.__CEVA_PATCH_V8_EARLY__ = true;
 
-  function clearTopSubtitleV7(){
+  function clearTopSubtitleV8(){
     const el = document.getElementById('pg-sub');
     if (el) el.textContent = '';
   }
-  window.updateSub = updateSub = function(){ clearTopSubtitleV7(); };
+  window.updateSub = updateSub = function(){ clearTopSubtitleV8(); };
 
-  const DB_NAME_V7 = 'ceva_ct';
-  const DB_STORE_V7 = 'data';
-  const DB_VERSION_V7 = 3;
-  const DB_KEY_V7 = 'rows';
-  let dbPromiseV7 = null;
+  const DB_NAME = 'ceva_ct';
+  const STORE = 'data';
+  const KEY = 'rows';
+  let dbPromise = null;
 
-  function storageAllowedV7(){
+  function storageAllowed(){
     try { return !!window.indexedDB && location.protocol !== 'file:'; }
     catch(_) { return false; }
   }
 
-  window.openDB = openDB = function(){
-    if (!storageAllowedV7()) return Promise.resolve(null);
-    if (dbPromiseV7) return dbPromiseV7;
-    dbPromiseV7 = new Promise((resolve) => {
+  function requestToPromise(req){
+    return new Promise((resolve, reject) => {
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error || new Error('IndexedDB request failed'));
+    });
+  }
+
+  async function discoverCurrentVersion(){
+    // Abre sem versão: não dispara upgrade e, portanto, não entra em onblocked por versionchange.
+    const db = await new Promise((resolve) => {
       let req;
-      try { req = indexedDB.open(DB_NAME_V7, DB_VERSION_V7); }
-      catch(err){ console.warn('IDB open bloqueado:', err); resolve(null); return; }
+      try { req = indexedDB.open(DB_NAME); }
+      catch(e){ console.warn('IDB open sem versão bloqueado:', e); resolve(null); return; }
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => resolve(null);
+      req.onblocked = () => resolve(null);
+    });
+    if (!db) return 1;
+    const version = db.version || 1;
+    try { db.close(); } catch(_) {}
+    return version;
+  }
+
+  async function openWithVersion(version){
+    return await new Promise((resolve) => {
+      let req;
+      try { req = indexedDB.open(DB_NAME, version); }
+      catch(e){ console.warn('IDB open bloqueado:', e); resolve(null); return; }
 
       req.onupgradeneeded = function(e){
         const db = e.target.result;
-        if (!db.objectStoreNames.contains(DB_STORE_V7)) db.createObjectStore(DB_STORE_V7);
+        if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE);
       };
       req.onsuccess = function(e){
         const db = e.target.result;
-        db.onversionchange = function(){ try{db.close();}catch(_){} dbPromiseV7 = null; };
+        db.onversionchange = function(){ try { db.close(); } catch(_) {} dbPromise = null; };
         resolve(db);
       };
       req.onerror = function(){ console.warn('IDB open:', req.error); resolve(null); };
-      req.onblocked = function(){ console.warn('IDB open bloqueado por outra aba. Feche outras abas e recarregue.'); resolve(null); };
+      req.onblocked = function(){
+        // Não é erro funcional: outra aba ainda mantém conexão antiga. Seguimos sem persistência nesta sessão.
+        console.warn('IDB temporariamente bloqueado por outra aba/cache. Persistência local ignorada nesta sessão.');
+        resolve(null);
+      };
     });
-    return dbPromiseV7;
+  }
+
+  window.openDB = openDB = async function(){
+    if (!storageAllowed()) return null;
+    if (dbPromise) return dbPromise;
+
+    dbPromise = (async () => {
+      const currentVersion = await discoverCurrentVersion();
+      let db = await openWithVersion(currentVersion);
+
+      if (db && db.objectStoreNames.contains(STORE)) return db;
+
+      // Só força upgrade se realmente não existir objectStore.
+      if (db) { try { db.close(); } catch(_) {} }
+      db = await openWithVersion(currentVersion + 1);
+      return db;
+    })();
+
+    return dbPromise;
   };
 
   window.saveIDB = saveIDB = async function(rows){
     const db = await openDB();
-    if (!db || !Array.isArray(rows)) return false;
+    if (!db || !Array.isArray(rows) || !db.objectStoreNames.contains(STORE)) return false;
+
     try{
       const slim = rows.map(r => ({
         _tsp:r._tsp,_uf:r._uf,_mes:r._mes,_dia:r._dia,_year:r._year,
@@ -2033,10 +2076,10 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();if(e.key
       }));
 
       await new Promise((resolve,reject)=>{
-        const tx = db.transaction(DB_STORE_V7,'readwrite');
-        const payload = {id:DB_KEY_V7, data:slim, at:new Date().toISOString(), patch:'v7-early'};
-        // Correção real: object store sem keyPath recebe chave explícita.
-        tx.objectStore(DB_STORE_V7).put(payload, DB_KEY_V7);
+        const tx = db.transaction(STORE,'readwrite');
+        const payload = {id:KEY, data:slim, at:new Date().toISOString(), patch:'v8-no-forced-upgrade'};
+        // Correção principal: chave explícita no put.
+        tx.objectStore(STORE).put(payload, KEY);
         tx.oncomplete = () => resolve(true);
         tx.onerror = () => reject(tx.error || new Error('Falha ao salvar IndexedDB'));
         tx.onabort = () => reject(tx.error || new Error('Transação IndexedDB abortada'));
@@ -2051,11 +2094,11 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();if(e.key
 
   window.loadIDB = loadIDB = async function(){
     const db = await openDB();
-    if (!db) return null;
+    if (!db || !db.objectStoreNames.contains(STORE)) return null;
     try{
       return await new Promise((resolve,reject)=>{
-        const tx = db.transaction(DB_STORE_V7,'readonly');
-        const r = tx.objectStore(DB_STORE_V7).get(DB_KEY_V7);
+        const tx = db.transaction(STORE,'readonly');
+        const r = tx.objectStore(STORE).get(KEY);
         r.onsuccess = () => resolve(r.result || null);
         r.onerror = () => reject(r.error || new Error('Falha ao carregar IndexedDB'));
       });
@@ -2065,10 +2108,10 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();if(e.key
   window.clearIDB = clearIDB = async function(){
     try{
       const db = await openDB();
-      if(db){
+      if(db && db.objectStoreNames.contains(STORE)){
         await new Promise((resolve,reject)=>{
-          const tx=db.transaction(DB_STORE_V7,'readwrite');
-          tx.objectStore(DB_STORE_V7).delete(DB_KEY_V7);
+          const tx=db.transaction(STORE,'readwrite');
+          tx.objectStore(STORE).delete(KEY);
           tx.oncomplete=()=>resolve(true);
           tx.onerror=()=>reject(tx.error);
         });
@@ -2081,8 +2124,8 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();if(e.key
     if(typeof toast==='function') toast('🗑 Dados removidos');
   };
 
-  document.addEventListener('DOMContentLoaded', clearTopSubtitleV7);
-  window.addEventListener('load', () => setTimeout(clearTopSubtitleV7, 100));
+  document.addEventListener('DOMContentLoaded', clearTopSubtitleV8);
+  window.addEventListener('load', () => setTimeout(clearTopSubtitleV8, 100));
 })();
 
 (async function init(){
@@ -2378,12 +2421,12 @@ document.addEventListener('click',e=>{
 
 
 
-<!-- PATCH v7 FINAL — Chart.js lifecycle seguro + subtítulo oculto -->
+<!-- PATCH v8 FINAL — Chart.js lifecycle seguro + subtítulo oculto -->
 <script>
 (function(){
   'use strict';
-  if (window.__CEVA_PATCH_V7_FINAL__) return;
-  window.__CEVA_PATCH_V7_FINAL__ = true;
+  if (window.__CEVA_PATCH_V8_FINAL__) return;
+  window.__CEVA_PATCH_V8_FINAL__ = true;
 
   function clearTopSubtitle(){ const el=document.getElementById('pg-sub'); if(el) el.textContent=''; }
   window.updateSub = function(){ clearTopSubtitle(); };
@@ -2427,8 +2470,8 @@ document.addEventListener('click',e=>{
       ev.preventDefault();
     }
   },true);
-  if(typeof window.nav==='function' && !window.nav.__v7FinalWrapped){const old=window.nav; window.nav=function(){try{window.destroyDashboardCharts?.();}catch(_){} const r=old.apply(this,arguments); setTimeout(clearTopSubtitle,0); setTimeout(clearTopSubtitle,200); return r;}; window.nav.__v7FinalWrapped=true;}
-  if(typeof window.renderPage==='function' && !window.renderPage.__v7FinalWrapped){const old=window.renderPage; window.renderPage=function(){const r=old.apply(this,arguments); setTimeout(clearTopSubtitle,0); setTimeout(clearTopSubtitle,200); return r;}; window.renderPage.__v7FinalWrapped=true;}
+  if(typeof window.nav==='function' && !window.nav.__v8FinalWrapped){const old=window.nav; window.nav=function(){try{window.destroyDashboardCharts?.();}catch(_){} const r=old.apply(this,arguments); setTimeout(clearTopSubtitle,0); setTimeout(clearTopSubtitle,200); return r;}; window.nav.__v8FinalWrapped=true;}
+  if(typeof window.renderPage==='function' && !window.renderPage.__v8FinalWrapped){const old=window.renderPage; window.renderPage=function(){const r=old.apply(this,arguments); setTimeout(clearTopSubtitle,0); setTimeout(clearTopSubtitle,200); return r;}; window.renderPage.__v8FinalWrapped=true;}
   document.addEventListener('DOMContentLoaded',()=>{clearTopSubtitle();setTimeout(clearTopSubtitle,300);});
   window.addEventListener('load',()=>{clearTopSubtitle();setTimeout(clearTopSubtitle,300);setTimeout(clearTopSubtitle,1000);});
 })();
