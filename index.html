@@ -1964,6 +1964,127 @@ document.getElementById('csv-file2').addEventListener('change',loadCSV);
 window.addEventListener('resize',()=>{clearTimeout(window._rt);window._rt=setTimeout(()=>{if(DATA.length)renderPage();},200);});
 window.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();if(e.key==='F11'){e.preventDefault();enterPresent();}});
 
+
+
+// PATCH v7 EARLY — executa ANTES do init() para corrigir IndexedDB e subtítulo já na restauração inicial
+(function(){
+  'use strict';
+  if (window.__CEVA_PATCH_V7_EARLY__) return;
+  window.__CEVA_PATCH_V7_EARLY__ = true;
+
+  function clearTopSubtitleV7(){
+    const el = document.getElementById('pg-sub');
+    if (el) el.textContent = '';
+  }
+  window.updateSub = updateSub = function(){ clearTopSubtitleV7(); };
+
+  const DB_NAME_V7 = 'ceva_ct';
+  const DB_STORE_V7 = 'data';
+  const DB_VERSION_V7 = 3;
+  const DB_KEY_V7 = 'rows';
+  let dbPromiseV7 = null;
+
+  function storageAllowedV7(){
+    try { return !!window.indexedDB && location.protocol !== 'file:'; }
+    catch(_) { return false; }
+  }
+
+  window.openDB = openDB = function(){
+    if (!storageAllowedV7()) return Promise.resolve(null);
+    if (dbPromiseV7) return dbPromiseV7;
+    dbPromiseV7 = new Promise((resolve) => {
+      let req;
+      try { req = indexedDB.open(DB_NAME_V7, DB_VERSION_V7); }
+      catch(err){ console.warn('IDB open bloqueado:', err); resolve(null); return; }
+
+      req.onupgradeneeded = function(e){
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(DB_STORE_V7)) db.createObjectStore(DB_STORE_V7);
+      };
+      req.onsuccess = function(e){
+        const db = e.target.result;
+        db.onversionchange = function(){ try{db.close();}catch(_){} dbPromiseV7 = null; };
+        resolve(db);
+      };
+      req.onerror = function(){ console.warn('IDB open:', req.error); resolve(null); };
+      req.onblocked = function(){ console.warn('IDB open bloqueado por outra aba. Feche outras abas e recarregue.'); resolve(null); };
+    });
+    return dbPromiseV7;
+  };
+
+  window.saveIDB = saveIDB = async function(rows){
+    const db = await openDB();
+    if (!db || !Array.isArray(rows)) return false;
+    try{
+      const slim = rows.map(r => ({
+        _tsp:r._tsp,_uf:r._uf,_mes:r._mes,_dia:r._dia,_year:r._year,
+        _isNP:r._isNP,_isFP:r._isFP,_isPNP:r._isPNP,_isPFP:r._isPFP,
+        _isFin:r._isFin,_isPend:r._isPend,
+        _dealer:r._dealer,_dest:r._dest,_cidade:r._cidade,
+        _nf:r._nf,_vols:r._vols,_oc:r._oc,_id:r._id,_regiao:r._regiao,
+        Status:r.Status,
+        'Data emissão NF':r['Data emissão NF'],
+        'Previsão de Entrega':r['Previsão de Entrega'],
+        'Data de Entrega':r['Data de Entrega'],
+        'Status Final':r['Status Final'],
+        'Status_1':r['Status_1'],
+        'Qtde. Volumes':r['Qtde. Volumes'],
+        'Mês_Previsao':r['Mês_Previsao']
+      }));
+
+      await new Promise((resolve,reject)=>{
+        const tx = db.transaction(DB_STORE_V7,'readwrite');
+        const payload = {id:DB_KEY_V7, data:slim, at:new Date().toISOString(), patch:'v7-early'};
+        // Correção real: object store sem keyPath recebe chave explícita.
+        tx.objectStore(DB_STORE_V7).put(payload, DB_KEY_V7);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error || new Error('Falha ao salvar IndexedDB'));
+        tx.onabort = () => reject(tx.error || new Error('Transação IndexedDB abortada'));
+      });
+
+      const bar=document.getElementById('idb-bar'), msg=document.getElementById('idb-msg');
+      if(msg) msg.textContent=`💾 ${slim.length.toLocaleString('pt-BR')} registros salvos · ${new Date().toLocaleString('pt-BR')}`;
+      if(bar) bar.classList.remove('hidden');
+      return true;
+    }catch(e){ console.warn('IDB save:', e); return false; }
+  };
+
+  window.loadIDB = loadIDB = async function(){
+    const db = await openDB();
+    if (!db) return null;
+    try{
+      return await new Promise((resolve,reject)=>{
+        const tx = db.transaction(DB_STORE_V7,'readonly');
+        const r = tx.objectStore(DB_STORE_V7).get(DB_KEY_V7);
+        r.onsuccess = () => resolve(r.result || null);
+        r.onerror = () => reject(r.error || new Error('Falha ao carregar IndexedDB'));
+      });
+    }catch(e){ console.warn('IDB load:', e); return null; }
+  };
+
+  window.clearIDB = clearIDB = async function(){
+    try{
+      const db = await openDB();
+      if(db){
+        await new Promise((resolve,reject)=>{
+          const tx=db.transaction(DB_STORE_V7,'readwrite');
+          tx.objectStore(DB_STORE_V7).delete(DB_KEY_V7);
+          tx.oncomplete=()=>resolve(true);
+          tx.onerror=()=>reject(tx.error);
+        });
+      }
+    }catch(e){ console.warn('IDB clear:', e); }
+    RAW=[]; DATA=[];
+    document.getElementById('empty-state')?.classList.remove('hidden');
+    const pages=document.getElementById('pages'); if(pages) pages.style.display='none';
+    document.getElementById('idb-bar')?.classList.add('hidden');
+    if(typeof toast==='function') toast('🗑 Dados removidos');
+  };
+
+  document.addEventListener('DOMContentLoaded', clearTopSubtitleV7);
+  window.addEventListener('load', () => setTimeout(clearTopSubtitleV7, 100));
+})();
+
 (async function init(){
   loadPrefs();
   try{
@@ -2257,299 +2378,59 @@ document.addEventListener('click',e=>{
 
 
 
-<!-- PATCH v6 FINAL — storage robusto, Chart.js lifecycle seguro e remoção do subtítulo superior -->
+<!-- PATCH v7 FINAL — Chart.js lifecycle seguro + subtítulo oculto -->
 <script>
 (function(){
   'use strict';
+  if (window.__CEVA_PATCH_V7_FINAL__) return;
+  window.__CEVA_PATCH_V7_FINAL__ = true;
 
-  const PATCH_TAG = 'v6-final-storage-chart-subtitle';
-  if (window.__CEVA_PATCH_V6_FINAL__) return;
-  window.__CEVA_PATCH_V6_FINAL__ = true;
-
-  /* 1) Remove definitivamente o texto superior do subtítulo
-     Ex.: "Jan, Fev, Mar, Abr · 6.221 NFs · OTD 92.5%" */
-  function clearTopSubtitle(){
-    const el = document.getElementById('pg-sub');
-    if (el) el.textContent = '';
-  }
-
-  window.updateSub = function(){
-    clearTopSubtitle();
-  };
-
-  const st = document.createElement('style');
-  st.textContent = `
-    .page-sub{display:none!important;}
-    .topbar-info{justify-content:center!important;}
-  `;
+  function clearTopSubtitle(){ const el=document.getElementById('pg-sub'); if(el) el.textContent=''; }
+  window.updateSub = function(){ clearTopSubtitle(); };
+  const st=document.createElement('style');
+  st.textContent='.page-sub{display:none!important}.topbar-info{justify-content:center!important;}';
   document.head.appendChild(st);
 
-  /* 2) Storage/IndexedDB resiliente.
-     Corrige: DataError em IDBObjectStore.put sem key.
-     Estratégia: store out-of-line com chave fixa 'rows'. */
-  const DB_NAME = 'ceva_ct';
-  const DB_STORE = 'data';
-  const DB_VERSION = 2;
-  const DB_KEY = 'rows';
-  let dbPromise = null;
-
-  function storageAllowed(){
-    try {
-      if (!('indexedDB' in window)) return false;
-      if (location.protocol === 'file:') return false;
-      return true;
-    } catch (_) {
-      return false;
+  function bag(){ try{ if(typeof CHARTS!=='undefined' && CHARTS) return CHARTS; }catch(_){} window.__CEVA_CHARTS__=window.__CEVA_CHARTS__||{}; return window.__CEVA_CHARTS__; }
+  function destroyOne(id){
+    const b=bag(), arr=[];
+    if(b[id]) arr.push(b[id]);
+    const el=document.getElementById(id);
+    if(el && window.Chart && typeof Chart.getChart==='function'){
+      const c=Chart.getChart(el); if(c) arr.push(c);
     }
+    [...new Set(arr)].forEach(c=>{try{c.destroy();}catch(e){console.warn('Chart destroy:',id,e);}});
+    delete b[id];
   }
-
-  function openDBSafe(){
-    if (!storageAllowed()) return Promise.resolve(null);
-    if (dbPromise) return dbPromise;
-
-    dbPromise = new Promise((resolve) => {
-      let req;
-      try {
-        req = indexedDB.open(DB_NAME, DB_VERSION);
-      } catch (err) {
-        console.warn('IDB open bloqueado:', err);
-        resolve(null);
-        return;
-      }
-
-      req.onupgradeneeded = function(e){
-        const db = e.target.result;
-        if (!db.objectStoreNames.contains(DB_STORE)) {
-          db.createObjectStore(DB_STORE);
-        }
-      };
-
-      req.onsuccess = function(e){
-        const db = e.target.result;
-        db.onversionchange = function(){
-          try { db.close(); } catch(_) {}
-          dbPromise = null;
-        };
-        resolve(db);
-      };
-
-      req.onerror = function(){
-        console.warn('IDB open:', req.error);
-        resolve(null);
-      };
-
-      req.onblocked = function(){
-        console.warn('IDB open bloqueado por outra aba. Feche outras abas do dashboard e recarregue.');
-        resolve(null);
-      };
-    });
-
-    return dbPromise;
-  }
-
-  window.saveIDB = async function(rows){
-    const db = await openDBSafe();
-    if (!db || !Array.isArray(rows)) return false;
-
-    try {
-      const slim = rows.map(r => ({
-        _tsp:r._tsp,_uf:r._uf,_mes:r._mes,_dia:r._dia,_year:r._year,
-        _isNP:r._isNP,_isFP:r._isFP,_isPNP:r._isPNP,_isPFP:r._isPFP,
-        _isFin:r._isFin,_isPend:r._isPend,
-        _dealer:r._dealer,_dest:r._dest,_cidade:r._cidade,
-        _nf:r._nf,_vols:r._vols,_oc:r._oc,_id:r._id,_regiao:r._regiao,
-        Status:r.Status,
-        'Data emissão NF':r['Data emissão NF'],
-        'Previsão de Entrega':r['Previsão de Entrega'],
-        'Data de Entrega':r['Data de Entrega'],
-        'Status Final':r['Status Final'],
-        'Status_1':r['Status_1'],
-        'Qtde. Volumes':r['Qtde. Volumes'],
-        'Mês_Previsao':r['Mês_Previsao']
-      }));
-
-      await new Promise((resolve, reject) => {
-        const tx = db.transaction(DB_STORE, 'readwrite');
-        const store = tx.objectStore(DB_STORE);
-        const payload = { id: DB_KEY, data: slim, at: new Date().toISOString(), patch: PATCH_TAG };
-
-        // Ponto crítico: chave explícita para object store out-of-line.
-        store.put(payload, DB_KEY);
-
-        tx.oncomplete = () => resolve(true);
-        tx.onerror = () => reject(tx.error || new Error('Falha ao salvar no IndexedDB'));
-        tx.onabort = () => reject(tx.error || new Error('Transação IndexedDB abortada'));
-      });
-
-      const bar = document.getElementById('idb-bar');
-      const msg = document.getElementById('idb-msg');
-      if (msg) msg.textContent = `💾 ${slim.length.toLocaleString('pt-BR')} registros salvos · ${new Date().toLocaleString('pt-BR')}`;
-      if (bar) bar.classList.remove('hidden');
-      return true;
-    } catch (err) {
-      console.warn('IDB save:', err);
-      return false;
+  window.destroyDashboardCharts=function(){
+    Object.keys(bag()).forEach(destroyOne);
+    if(window.Chart && typeof Chart.getChart==='function'){
+      document.querySelectorAll('canvas').forEach(cv=>{const c=Chart.getChart(cv); if(c){try{c.destroy();}catch(_){}}});
     }
   };
-
-  window.loadIDB = async function(){
-    const db = await openDBSafe();
-    if (!db) return null;
-
-    try {
-      return await new Promise((resolve, reject) => {
-        const tx = db.transaction(DB_STORE, 'readonly');
-        const req = tx.objectStore(DB_STORE).get(DB_KEY);
-        req.onsuccess = () => resolve(req.result || null);
-        req.onerror = () => reject(req.error || new Error('Falha ao carregar IndexedDB'));
-      });
-    } catch (err) {
-      console.warn('IDB load:', err);
-      return null;
-    }
-  };
-
-  window.clearIDB = async function(){
-    try {
-      const db = await openDBSafe();
-      if (db) {
-        await new Promise((resolve, reject) => {
-          const tx = db.transaction(DB_STORE, 'readwrite');
-          tx.objectStore(DB_STORE).delete(DB_KEY);
-          tx.oncomplete = () => resolve(true);
-          tx.onerror = () => reject(tx.error);
-        });
-      }
-    } catch (err) {
-      console.warn('IDB clear:', err);
-    }
-
-    try { RAW = []; DATA = []; } catch(_) {}
-    document.getElementById('empty-state')?.classList.remove('hidden');
-    const pages = document.getElementById('pages'); if (pages) pages.style.display = 'none';
-    document.getElementById('idb-bar')?.classList.add('hidden');
-    if (typeof toast === 'function') toast('🗑 Dados removidos');
-  };
-
-  /* 3) Chart.js lifecycle seguro.
-     Corrige corrida de eventos: Canvas removido/recriado enquanto Chart ainda tem listeners ativos. */
-  function getChartBag(){
-    try {
-      if (typeof CHARTS !== 'undefined' && CHARTS) return CHARTS;
-    } catch(_) {}
-    window.__CEVA_CHARTS__ = window.__CEVA_CHARTS__ || {};
-    return window.__CEVA_CHARTS__;
-  }
-
-  function destroyOneChart(id){
-    const bag = getChartBag();
-    const candidates = [];
-    if (bag && bag[id]) candidates.push(bag[id]);
-
-    const el = document.getElementById(id);
-    if (el && window.Chart && typeof Chart.getChart === 'function') {
-      const nativeChart = Chart.getChart(el);
-      if (nativeChart) candidates.push(nativeChart);
-    }
-
-    [...new Set(candidates)].forEach(ch => {
-      try { ch.destroy(); } catch (err) { console.warn('Chart destroy:', id, err); }
-    });
-
-    if (bag) delete bag[id];
-  }
-
-  window.destroyDashboardCharts = function(){
-    const bag = getChartBag();
-    Object.keys(bag || {}).forEach(destroyOneChart);
-
-    if (window.Chart && typeof Chart.getChart === 'function') {
-      document.querySelectorAll('canvas').forEach(cv => {
-        const ch = Chart.getChart(cv);
-        if (ch) {
-          try { ch.destroy(); } catch(_) {}
-        }
-      });
-    }
-  };
-
-  window.mkChart = function(id, cfg){
-    const el = document.getElementById(id);
-    if (!el) return null;
-    if (!window.Chart) {
-      console.warn('Chart.js não carregado. Gráfico ignorado:', id);
-      return null;
-    }
-
-    destroyOneChart(id);
-
-    try {
-      cfg = cfg || {};
-      cfg.options = cfg.options || {};
+  window.mkChart=function(id,cfg){
+    const el=document.getElementById(id); if(!el || !window.Chart) return null;
+    destroyOne(id);
+    try{
+      cfg=cfg||{}; cfg.options=cfg.options||{};
       cfg.options.responsive = cfg.options.responsive !== false;
       cfg.options.maintainAspectRatio = cfg.options.maintainAspectRatio === true ? true : false;
       cfg.options.animation = cfg.options.animation || false;
       cfg.options.resizeDelay = cfg.options.resizeDelay || 120;
-
-      const chart = new Chart(el.getContext('2d'), cfg);
-      const bag = getChartBag();
-      bag[id] = chart;
-      return chart;
-    } catch (err) {
-      console.error('Erro ao renderizar gráfico', id, err);
-      return null;
-    }
+      const c=new Chart(el.getContext('2d'),cfg); bag()[id]=c; return c;
+    }catch(e){ console.error('Erro ao renderizar gráfico',id,e); return null; }
   };
-
-  /* Evita que uma corrida interna conhecida do Chart.js gere erro vermelho no console
-     depois que o lifecycle acima já preveniu o problema funcional. */
-  window.addEventListener('error', function(ev){
-    const msg = String(ev.message || '');
-    const src = String(ev.filename || '');
-    if (src.includes('chart') && msg.includes('handleEvent')) {
-      console.warn('Evento tardio do Chart.js ignorado com segurança:', msg);
+  window.addEventListener('error',function(ev){
+    const msg=String(ev.message||''), src=String(ev.filename||'');
+    if(src.toLowerCase().includes('chart') && msg.includes('handleEvent')){
+      console.warn('Evento tardio do Chart.js ignorado com segurança:',msg);
       ev.preventDefault();
     }
-  }, true);
-
-  /* 4) Reforços no ciclo de navegação/renderização */
-  if (typeof window.nav === 'function' && !window.nav.__v6FinalWrapped) {
-    const oldNav = window.nav;
-    window.nav = function(id, el){
-      try { window.destroyDashboardCharts?.(); } catch(_) {}
-      const ret = oldNav.apply(this, arguments);
-      setTimeout(clearTopSubtitle, 0);
-      setTimeout(clearTopSubtitle, 150);
-      return ret;
-    };
-    window.nav.__v6FinalWrapped = true;
-  }
-
-  if (typeof window.renderPage === 'function' && !window.renderPage.__v6FinalWrapped) {
-    const oldRenderPage = window.renderPage;
-    window.renderPage = function(){
-      const ret = oldRenderPage.apply(this, arguments);
-      setTimeout(clearTopSubtitle, 0);
-      setTimeout(clearTopSubtitle, 150);
-      return ret;
-    };
-    window.renderPage.__v6FinalWrapped = true;
-  }
-
-  window.addEventListener('pagehide', function(){
-    try { window.destroyDashboardCharts?.(); } catch(_) {}
-  });
-
-  document.addEventListener('DOMContentLoaded', function(){
-    clearTopSubtitle();
-    setTimeout(clearTopSubtitle, 200);
-    setTimeout(clearTopSubtitle, 800);
-  });
-  window.addEventListener('load', function(){
-    clearTopSubtitle();
-    setTimeout(clearTopSubtitle, 250);
-    setTimeout(clearTopSubtitle, 1000);
-  });
+  },true);
+  if(typeof window.nav==='function' && !window.nav.__v7FinalWrapped){const old=window.nav; window.nav=function(){try{window.destroyDashboardCharts?.();}catch(_){} const r=old.apply(this,arguments); setTimeout(clearTopSubtitle,0); setTimeout(clearTopSubtitle,200); return r;}; window.nav.__v7FinalWrapped=true;}
+  if(typeof window.renderPage==='function' && !window.renderPage.__v7FinalWrapped){const old=window.renderPage; window.renderPage=function(){const r=old.apply(this,arguments); setTimeout(clearTopSubtitle,0); setTimeout(clearTopSubtitle,200); return r;}; window.renderPage.__v7FinalWrapped=true;}
+  document.addEventListener('DOMContentLoaded',()=>{clearTopSubtitle();setTimeout(clearTopSubtitle,300);});
+  window.addEventListener('load',()=>{clearTopSubtitle();setTimeout(clearTopSubtitle,300);setTimeout(clearTopSubtitle,1000);});
 })();
 </script>
 </body>
