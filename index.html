@@ -406,6 +406,27 @@ body.light .alert-title{color:var(--text);}
 body.light .tbl td{color:var(--text);}
 body.light .logo-name{color:var(--text);}
 body.light .page-title{color:var(--text);}
+
+/* ── AJUSTES V5: SEM CSV, SEM ALERTA VALIDAÇÃO, BUSCA NAS AÇÕES, DETALHE GLOBAL ── */
+.val-banner{display:none!important;}
+.topbar-actions .top-search{width:260px;min-width:220px;max-width:300px;}
+.topbar-filters{overflow:visible!important;max-width:none!important;}
+.topbar-filters::-webkit-scrollbar{display:none!important;}
+.global-detail{margin-top:18px;position:relative;display:block;}
+.global-detail .detail-note{font-size:10px;color:var(--muted);font-weight:500;text-transform:none;letter-spacing:0;}
+.global-detail .tbl-wrap{max-height:360px;overflow:auto;border-radius:var(--radius-sm);}
+.global-detail .tbl{min-width:1160px;}
+.global-detail .tbl th{position:sticky;top:0;background:var(--card);z-index:2;}
+.city-chip{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 7px;background:var(--blue-bg);color:var(--cyan);font-size:10px;font-weight:700;white-space:nowrap;}
+.city-rank-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 6px;border-bottom:1px solid var(--border);cursor:pointer;border-radius:6px;transition:background .15s;}
+.city-rank-row:hover{background:var(--card2);}
+.city-rank-main{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.city-rank-title{font-size:11.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.city-rank-sub{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+@media(max-width:1280px){.topbar-actions .top-search{width:210px;min-width:180px}.fsel{min-width:96px;max-width:112px}.global-detail .tbl{font-size:10.5px}.global-detail .tbl th,.global-detail .tbl td{padding:6px 7px}}
+@media(max-width:1080px){.topbar-filters{display:none!important}.topbar-actions .top-search{display:inline-flex!important;width:240px;min-width:170px}}
+@media(max-width:720px){.topbar{flex-wrap:wrap;height:auto;padding:8px 12px}.topbar-info{order:1;max-width:calc(100% - 44px)}.topbar-actions{order:2;width:100%;display:grid;grid-template-columns:1fr auto auto auto;gap:6px}.topbar-actions .top-search{width:100%;min-width:0}.topbar-actions .btn{display:inline-flex!important;padding-left:8px;padding-right:8px}.topbar-actions .btn-icon{display:flex}.content{padding:12px}.global-detail{margin-top:12px}.global-detail .card-hd{align-items:flex-start}.global-detail .tbl-wrap{max-height:330px}.global-detail .tbl{min-width:1160px}}
+
 </style>
 </head>
 <body>
@@ -447,6 +468,7 @@ body.light .page-title{color:var(--text);}
     <div class="nav-item" data-page="dealer" data-tip="Por Dealer" onclick="nav('dealer',this)"><span class="ni">🏪</span><span class="nav-label">Por Dealer</span></div>
     <div class="nav-item" data-page="tsp" data-tip="Transportadora" onclick="nav('tsp',this)"><span class="ni">🚚</span><span class="nav-label">Transportadora</span></div>
     <div class="nav-item" data-page="uf" data-tip="Por UF" onclick="nav('uf',this)"><span class="ni">📍</span><span class="nav-label">Por UF</span></div>
+        <div class="nav-item" data-page="cidade" data-tip="Por Cidade" onclick="nav('cidade',this)"><span class="ni">🏙️</span><span class="nav-label">Por Cidade</span><span class="badge">NOVO</span></div>
     <div class="nav-item" data-page="dia" data-tip="Por Dia" onclick="nav('dia',this)"><span class="ni">📅</span><span class="nav-label">Por Dia</span></div>
     <div class="nav-section">Análise</div>
     <div class="nav-item" data-page="mapa" data-tip="Mapa Brasil" onclick="nav('mapa',this)"><span class="ni">🗺️</span><span class="nav-label">Mapa Brasil</span></div>
@@ -470,11 +492,11 @@ body.light .page-title{color:var(--text);}
       <div class="page-sub" id="pg-sub">Importe BASE_OTD.csv para começar</div>
     </div>
     <div class="topbar-filters">
-      <input class="fsearch" id="f-search" placeholder="🔍 NF / Dealer / TSP" oninput="onSearch(this.value)">
       <select class="fsel" id="f-mes" onchange="applyFilters()"><option value="">Todos os Meses</option></select>
       <select class="fsel" id="f-regiao" onchange="applyFilters()"><option value="">Todas Regiões</option></select>
       <select class="fsel" id="f-tsp" onchange="applyFilters()"><option value="">Todas TSP</option></select>
       <select class="fsel" id="f-uf" onchange="applyFilters()"><option value="">Todos UFs</option></select>
+      <select class="fsel" id="f-cidade" onchange="applyFilters()"><option value="">Todas Cidades</option></select>
       <select class="fsel" id="f-status" onchange="applyFilters()">
         <option value="">Todos Status</option>
         <option value="np">Entregue No Prazo</option>
@@ -486,8 +508,7 @@ body.light .page-title{color:var(--text);}
       </select>
     </div>
     <div class="topbar-actions">
-      <button class="btn" onclick="exportCSV()" title="Exportar CSV filtrado">⬇ CSV</button>
-      <button class="btn" onclick="shareURL()" title="Copiar link com filtros">🔗</button>
+      <input class="fsearch top-search" id="f-search" placeholder="🔍 NF / Dealer / Cidade / UF / TSP" oninput="onSearch(this.value)">
       <button class="btn purple" onclick="enterPresent()">⛶</button>
       <button class="btn-icon" onclick="toggleTheme()">☀</button>
       <label class="btn primary">⬆ Importar CSV<input type="file" accept=".csv" id="csv-file"></label>
@@ -548,7 +569,7 @@ body.light .page-title{color:var(--text);}
         <div class="card"><div class="card-hd">🏪 Top 10 Dealers com Atraso<span class="hd-badge">Clique para detalhes</span></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Dealer</th><th>UF</th><th>TSP</th><th>Atrasos</th><th>Pendentes</th><th>OTD %</th></tr></thead><tbody id="tb-top-dealers"></tbody></table></div></div>
         <div class="card"><div class="card-hd">🌎 Volume por Região</div><div class="cw" style="height:200px"><canvas id="c-visao-reg"></canvas></div></div>
       </div>
-      <div class="card g1"><div class="card-hd">🔍 Detalhamento de NFs<div class="hd-right"><span class="hd-badge" id="nf-count-lbl"></span></div></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>NF</th><th>Transportadora</th><th>Dealer</th><th>UF</th><th>Destinatário</th><th>Status</th><th>Emissão</th><th>Previsão</th><th>Entrega</th></tr></thead><tbody id="tb-nf-detail"></tbody></table></div><div class="pager"><button class="pager-btn" id="nf-prev" onclick="changePage('nf',-1)">← Anterior</button><span class="pager-info" id="nf-pinfo"></span><button class="pager-btn" id="nf-next" onclick="changePage('nf',1)">Próxima →</button></div></div>
+      <div class="card g1" style="display:none"><div class="card-hd">🔍 Detalhamento de NFs<div class="hd-right"><span class="hd-badge" id="nf-count-lbl"></span></div></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>NF</th><th>Transportadora</th><th>Dealer</th><th>UF</th><th>Destinatário</th><th>Status</th><th>Emissão</th><th>Previsão</th><th>Entrega</th></tr></thead><tbody id="tb-nf-detail"></tbody></table></div><div class="pager"><button class="pager-btn" id="nf-prev" onclick="changePage('nf',-1)">← Anterior</button><span class="pager-info" id="nf-pinfo"></span><button class="pager-btn" id="nf-next" onclick="changePage('nf',1)">Próxima →</button></div></div>
     </div>
 
     <!-- DEALER -->
@@ -580,6 +601,21 @@ body.light .page-title{color:var(--text);}
         <div class="card"><div class="card-hd">📦 Volume + OTD por UF</div><div class="cw" style="height:300px"><canvas id="c-uf-dual"></canvas></div></div>
       </div>
       <div class="card g1"><div class="card-hd">🏅 Ranking por UF</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>UF</th><th>Região</th><th>Total</th><th>No Prazo</th><th>Fora Prazo</th><th>Pend. NP</th><th>Pend. FP</th><th>OTD %</th><th>Gap</th></tr></thead><tbody id="tb-uf"></tbody></table></div></div>
+    </div>
+
+
+    <!-- CIDADE -->
+    <div class="page" id="page-cidade">
+      <div class="kpi-row c4" id="kpi-cidade"></div>
+      <div class="g2">
+        <div class="card"><div class="card-hd">🏙️ OTD % por Cidade <span class="hd-badge">piores com volume</span></div><div class="cw" style="height:320px"><canvas id="c-cidade-otd"></canvas></div></div>
+        <div class="card"><div class="card-hd">📦 Volume + OTD por Cidade</div><div class="cw" style="height:320px"><canvas id="c-cidade-volume"></canvas></div></div>
+      </div>
+      <div class="g2">
+        <div class="card"><div class="card-hd">🔥 Cidades Críticas <span class="hd-badge">clique para filtrar</span></div><div id="cidade-critical" style="max-height:280px;overflow:auto"></div></div>
+        <div class="card"><div class="card-hd">🏆 Top Cidades na Meta <span class="hd-badge">OTD ≥ 98%</span></div><div id="cidade-best" style="max-height:280px;overflow:auto"></div></div>
+      </div>
+      <div class="card g1"><div class="card-hd">🏅 Ranking Completo por Cidade</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Cidade</th><th>UF</th><th>Total</th><th>Finalizadas</th><th>No Prazo</th><th>Fora Prazo</th><th>Pend.</th><th>OTD %</th><th>Gap</th></tr></thead><tbody id="tb-cidade"></tbody></table></div></div>
     </div>
 
     <!-- DIA -->
@@ -687,6 +723,19 @@ body.light .page-title{color:var(--text);}
       <div class="card g1"><div class="card-hd">🔗 Todos os Dealers<div class="hd-right"><input class="fsearch" placeholder="🔍 Buscar..." oninput="filterNetworkTbl(this.value)" style="width:150px"></div></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Dealer</th><th>UF</th><th>Cidade</th><th>TSP</th><th>NFs</th><th>OTD %</th></tr></thead><tbody id="tb-net"></tbody></table></div></div>
     </div>
 
+
+      <!-- DETALHAMENTO GLOBAL COMPACTO -->
+      <div class="card global-detail" id="global-detail">
+        <div class="card-hd">📋 Detalhamento Operacional
+          <span class="hd-badge" id="detail-count-lbl"></span>
+          <span class="detail-note">10 por página · acompanha todos os filtros</span>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl"><thead><tr><th>NF</th><th>Dealer</th><th>Destinatário</th><th>Cidade</th><th>UF</th><th>Transportadora</th><th>Status</th><th>Emissão</th><th>Previsão</th><th>Entrega</th><th>Ocorrência</th></tr></thead><tbody id="tb-global-detail"></tbody></table>
+        </div>
+        <div class="pager"><button class="pager-btn" id="detail-prev" onclick="changePage('detail',-1)">← Anterior</button><span class="pager-info" id="detail-pinfo"></span><button class="pager-btn" id="detail-next" onclick="changePage('detail',1)">Próxima →</button></div>
+      </div>
+
     </div><!-- /pages -->
   </div><!-- /content -->
 </div><!-- /main -->
@@ -701,10 +750,10 @@ const META=98,WARN=88;
 const COLORS=['#e63946','#38c4f0','#2ecc71','#f4a620','#a855f7','#1d6be6','#ff6b74','#ffd166','#06d6a0','#ef476f','#118ab2','#ffc8dd'];
 const MONTHS={1:'Jan',2:'Fev',3:'Mar',4:'Abr',5:'Mai',6:'Jun',7:'Jul',8:'Ago',9:'Set',10:'Out',11:'Nov',12:'Dez'};
 const REGIAO={AC:'Norte',AM:'Norte',AP:'Norte',PA:'Norte',RO:'Norte',RR:'Norte',TO:'Norte',AL:'Nordeste',BA:'Nordeste',CE:'Nordeste',MA:'Nordeste',PB:'Nordeste',PE:'Nordeste',PI:'Nordeste',RN:'Nordeste',SE:'Nordeste',DF:'Centro-Oeste',GO:'Centro-Oeste',MS:'Centro-Oeste',MT:'Centro-Oeste',ES:'Sudeste',MG:'Sudeste',RJ:'Sudeste',SP:'Sudeste',PR:'Sul',RS:'Sul',SC:'Sul'};
-const PAGE_NAMES={visao:'Visão Geral',dealer:'OTD por Dealer',tsp:'Por Transportadora',uf:'Por UF',dia:'Por Dia',mapa:'Mapa Brasil',tendencia:'Tendência & ML',comparativo:'Comparativo TSP',semanal:'Visão Semanal',drivers:'Ocorrências',especial:'Gráficos Especiais',insights:'Insights Inteligentes',kpiadv:'KPIs Avançados',network:'Network'};
+const PAGE_NAMES={visao:'Visão Geral',dealer:'OTD por Dealer',tsp:'Por Transportadora',uf:'Por UF',cidade:'Por Cidade',dia:'Por Dia',mapa:'Mapa Brasil',tendencia:'Tendência & ML',comparativo:'Comparativo TSP',semanal:'Visão Semanal',drivers:'Ocorrências',especial:'Gráficos Especiais',insights:'Insights Inteligentes',kpiadv:'KPIs Avançados',network:'Network'};
 
 let RAW=[],DATA=[],CHARTS={},GEO=null,LEAFLET_MAP=null;
-let PAGES={nf:{cur:1,size:12},dealer:{cur:1,size:15}};
+let PAGES={nf:{cur:1,size:12},dealer:{cur:1,size:15},detail:{cur:1,size:10}};
 let DEALER_DATA=[],NETWORK_DATA=[];
 let MAP_MODE='map';
 let SEARCH='';
@@ -756,7 +805,7 @@ function exitPresent(){document.body.classList.remove('pres-mode');if(document.e
 // ══════════════════════════════════════
 function shareURL(){
   const p=new URLSearchParams();
-  ['f-mes','f-regiao','f-tsp','f-uf','f-status'].forEach(id=>{const v=document.getElementById(id)?.value;if(v)p.set(id.replace('f-',''),v);});
+  ['f-mes','f-regiao','f-tsp','f-uf','f-cidade','f-status'].forEach(id=>{const v=document.getElementById(id)?.value;if(v)p.set(id.replace('f-',''),v);});
   const pg=document.querySelector('.nav-item.active')?.dataset.page;if(pg)p.set('pg',pg);
   const url=location.origin+location.pathname+'?'+p.toString();
   navigator.clipboard?.writeText(url).then(()=>toast('🔗 Link copiado!')).catch(()=>toast(url));
@@ -764,7 +813,7 @@ function shareURL(){
 function applyURLParams(){
   try{
     const p=new URLSearchParams(location.search);
-    const map={'mes':'f-mes','regiao':'f-regiao','tsp':'f-tsp','uf':'f-uf','status':'f-status'};
+    const map={'mes':'f-mes','regiao':'f-regiao','tsp':'f-tsp','uf':'f-uf','cidade':'f-cidade','status':'f-status'};
     Object.entries(map).forEach(([k,id])=>{const v=p.get(k);if(v){const el=document.getElementById(id);if(el)el.value=v;}});
     const pg=p.get('pg');if(pg){const el=document.querySelector(`.nav-item[data-page="${pg}"]`);if(el)nav(pg,el);}
   }catch(e){}
@@ -984,41 +1033,31 @@ function fillSel(id,opts){
   const base=el.options[0].outerHTML;
   el.innerHTML=base+opts.map(o=>`<option value="${o.v}"${o.v==cur?' selected':''}>${o.l}</option>`).join('');
 }
-function populateFilters(){
-  const meses=[...new Set(RAW.map(r=>r._mes).filter(Boolean))].sort((a,b)=>a-b);
-  const regs=[...new Set(RAW.map(r=>r._regiao).filter(Boolean))].sort();
-  const tsps=[...new Set(RAW.map(r=>r._tsp).filter(Boolean))].sort();
-  const ufs=[...new Set(RAW.map(r=>r._uf).filter(Boolean))].sort();
-  const yr=[...new Set(RAW.map(r=>r._year).filter(Boolean))][0]||'';
-  fillSel('f-mes',meses.map(m=>({v:m,l:`${MONTHS[m]}/${yr}`})));
-  fillSel('f-regiao',regs.map(r=>({v:r,l:r})));
-  fillSel('f-tsp',tsps.map(t=>({v:t,l:t})));
-  fillSel('f-uf',ufs.map(u=>({v:u,l:u})));
+
+function getFilterValues(){return{mes:document.getElementById('f-mes')?.value||'',reg:document.getElementById('f-regiao')?.value||'',tsp:document.getElementById('f-tsp')?.value||'',uf:document.getElementById('f-uf')?.value||'',cidade:document.getElementById('f-cidade')?.value||'',st:document.getElementById('f-status')?.value||''};}
+function passStatus(r,st){if(st==='np')return r._isNP;if(st==='fp')return r._isFP;if(st==='pnp')return r._isPNP;if(st==='pfp')return r._isPFP;if(st==='fin')return r._isFin;if(st==='pend')return r._isPend;return true;}
+function rowsForOptions(exclude=''){
+  const f=getFilterValues();
+  return RAW.filter(r=>{if(exclude!=='mes'&&f.mes&&r._mes!=f.mes)return false;if(exclude!=='regiao'&&f.reg&&r._regiao!==f.reg)return false;if(exclude!=='tsp'&&f.tsp&&r._tsp!==f.tsp)return false;if(exclude!=='uf'&&f.uf&&r._uf!==f.uf)return false;if(exclude!=='cidade'&&f.cidade&&r._cidade!==f.cidade)return false;if(exclude!=='status'&&f.st&&!passStatus(r,f.st))return false;if(SEARCH){const t=[r._nf,r._id,r._dealer,r._dest,r._tsp,r._uf,r._cidade,r.Status||''].join(' ').toLowerCase();if(!t.includes(SEARCH))return false;}return true;});
 }
+function fillSelSmart(id,opts){const el=document.getElementById(id);if(!el)return;const cur=el.value;const base=el.options[0]?.outerHTML||'<option value=""></option>';const values=new Set(opts.map(o=>String(o.v)));el.innerHTML=base+opts.map(o=>`<option value="${String(o.v).replace(/"/g,'&quot;')}"${String(o.v)===cur?' selected':''}>${o.l}</option>`).join('');if(cur&&!values.has(String(cur)))el.value='';}
+function updateCascadeFilters(){
+  const yr=[...new Set(RAW.map(r=>r._year).filter(Boolean))][0]||'';
+  let rows=rowsForOptions('mes');let meses=[...new Set(rows.map(r=>r._mes).filter(Boolean))].sort((a,b)=>a-b);fillSelSmart('f-mes',meses.map(m=>({v:m,l:`${MONTHS[m]}/${yr}`})));
+  rows=rowsForOptions('regiao');let regs=[...new Set(rows.map(r=>r._regiao).filter(Boolean))].sort();fillSelSmart('f-regiao',regs.map(r=>({v:r,l:r})));
+  rows=rowsForOptions('tsp');let tsps=[...new Set(rows.map(r=>r._tsp).filter(Boolean))].sort();fillSelSmart('f-tsp',tsps.map(t=>({v:t,l:t})));
+  rows=rowsForOptions('uf');let ufs=[...new Set(rows.map(r=>r._uf).filter(Boolean))].sort();fillSelSmart('f-uf',ufs.map(u=>({v:u,l:u})));
+  rows=rowsForOptions('cidade');let cidades=[...new Set(rows.map(r=>r._cidade).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));fillSelSmart('f-cidade',cidades.map(c=>({v:c,l:c})));
+}
+function populateFilters(){updateCascadeFilters();}
 function onSearch(v){SEARCH=(v||'').trim().toLowerCase();applyFilters();}
+
 function applyFilters(){
-  const mes=document.getElementById('f-mes').value;
-  const reg=document.getElementById('f-regiao').value;
-  const tsp=document.getElementById('f-tsp').value;
-  const uf=document.getElementById('f-uf').value;
-  const st=document.getElementById('f-status').value;
-  DATA=RAW.filter(r=>{
-    if(mes&&r._mes!=mes)return false;
-    if(reg&&r._regiao!==reg)return false;
-    if(tsp&&r._tsp!==tsp)return false;
-    if(uf&&r._uf!==uf)return false;
-    if(st==='np'&&!r._isNP)return false;
-    if(st==='fp'&&!r._isFP)return false;
-    if(st==='pnp'&&!r._isPNP)return false;
-    if(st==='pfp'&&!r._isPFP)return false;
-    if(st==='fin'&&!r._isFin)return false;
-    if(st==='pend'&&!r._isPend)return false;
-    if(SEARCH){const t=[r._nf,r._id,r._dealer,r._dest,r._tsp,r._uf,r._cidade,r.Status||''].join(' ').toLowerCase();if(!t.includes(SEARCH))return false;}
-    return true;
-  });
-  PAGES.nf.cur=1;PAGES.dealer.cur=1;
-  renderPage();checkAlertBanner();
-  updateSub();
+  updateCascadeFilters();
+  const f=getFilterValues();
+  DATA=RAW.filter(r=>{if(f.mes&&r._mes!=f.mes)return false;if(f.reg&&r._regiao!==f.reg)return false;if(f.tsp&&r._tsp!==f.tsp)return false;if(f.uf&&r._uf!==f.uf)return false;if(f.cidade&&r._cidade!==f.cidade)return false;if(f.st&&!passStatus(r,f.st))return false;if(SEARCH){const t=[r._nf,r._id,r._dealer,r._dest,r._tsp,r._uf,r._cidade,r.Status||''].join(' ').toLowerCase();if(!t.includes(SEARCH))return false;}return true;});
+  PAGES.nf.cur=1;PAGES.dealer.cur=1;PAGES.detail.cur=1;
+  renderPage();checkAlertBanner();updateSub();
 }
 function updateSub(){
   const s=stats(DATA);
@@ -1089,6 +1128,7 @@ function changePage(key,step){
   const pg=PAGES[key];if(!pg)return;
   if(key==='nf'){const max=Math.max(1,Math.ceil(DATA.length/pg.size));pg.cur=Math.min(max,Math.max(1,pg.cur+step));renderNFDetail();}
   if(key==='dealer'){const max=Math.max(1,Math.ceil(DEALER_DATA.length/pg.size));pg.cur=Math.min(max,Math.max(1,pg.cur+step));renderDealerTable(DEALER_DATA);}
+  if(key==='detail'){const max=Math.max(1,Math.ceil(DATA.length/pg.size));pg.cur=Math.min(max,Math.max(1,pg.cur+step));renderOperationalDetail();}
 }
 function setPager(key,cur,total){
   const max=Math.max(1,Math.ceil(total/PAGES[key].size));
@@ -1360,8 +1400,9 @@ function renderPage(){
   if(!DATA.length)return;
   const pg=document.querySelector('.page.active');if(!pg)return;
   const id=pg.id.replace('page-','');
-  const fn={visao:renderVisao,dealer:renderDealer,tsp:renderTSP,uf:renderUF,dia:renderDia,mapa:renderMapa,tendencia:renderTend,comparativo:renderComp,semanal:renderSemanal,drivers:renderDrivers,especial:renderEspecial,insights:renderInsights,kpiadv:renderKPIAdv,network:renderNetwork};
-  if(fn[id])fn[id]();
+  const fn={visao:renderVisao,dealer:renderDealer,tsp:renderTSP,uf:renderUF,cidade:renderCidade,dia:renderDia,mapa:renderMapa,tendencia:renderTend,comparativo:renderComp,semanal:renderSemanal,drivers:renderDrivers,especial:renderEspecial,insights:renderInsights,kpiadv:renderKPIAdv,network:renderNetwork};
+  try{if(fn[id])fn[id]();}catch(e){console.error('Erro ao renderizar página',id,e);}
+  renderOperationalDetail();
   updateSub();
 }
 
@@ -1431,16 +1472,31 @@ function renderNFDetail(){
   const pg=PAGES.nf,start=(pg.cur-1)*pg.size;
   const sorted=DATA.slice().sort((a,b)=>{const da=parseDate(a['Data emissão NF']),db=parseDate(b['Data emissão NF']);return(db?db.getTime():0)-(da?da.getTime():0);});
   const pageRows=sorted.slice(start,start+pg.size);
-  document.getElementById('tb-nf-detail').innerHTML=pageRows.map(r=>{
+  const nfTbody=document.getElementById('tb-nf-detail'); if(!nfTbody)return;
+  nfTbody.innerHTML=pageRows.map(r=>{
     const stCol=r._isNP?'var(--green)':r._isFP?'var(--red)':r._isPNP?'var(--purple)':r._isPFP?'var(--orange)':'var(--muted)';
     return`<tr><td style="font-family:var(--mono);font-size:10px;color:var(--muted)">${r._nf||'—'}</td><td>${r._tsp||'—'}</td><td title="${r._dealer}">${(r._dealer||'').length>20?(r._dealer||'').slice(0,20)+'…':(r._dealer||'—')}</td><td>${r._uf||'—'}</td><td title="${r._dest}">${(r._dest||'').length>24?(r._dest||'').slice(0,24)+'…':(r._dest||'—')}</td><td style="color:${stCol};font-weight:500;font-size:10.5px">${r.Status||'—'}</td><td style="font-size:10.5px">${fmtDate(r['Data emissão NF'])}</td><td style="font-size:10.5px">${fmtDate(r['Previsão de Entrega'])}</td><td style="font-size:10.5px">${fmtDate(r['Data de Entrega'])}</td></tr>`;
   }).join('');
-  document.getElementById('nf-count-lbl').textContent=fmtN(DATA.length)+' NFs';
-  setPager('nf',pg.cur,DATA.length);
+  const nfLbl=document.getElementById('nf-count-lbl'); if(nfLbl)nfLbl.textContent=fmtN(DATA.length)+' NFs';
+  if(document.getElementById('nf-pinfo'))setPager('nf',pg.cur,DATA.length);
 }
 
 // ══════════════════════════════════════
 //  RENDER: DEALER
+// ══════════════════════════════════════
+
+function esc(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function renderOperationalDetail(){
+  const wrap=document.getElementById('global-detail');if(!wrap)return;if(!DATA.length){wrap.style.display='none';return;}wrap.style.display='block';
+  const pg=PAGES.detail,start=(pg.cur-1)*pg.size;
+  const sorted=DATA.slice().sort((a,b)=>{const da=parseDate(a['Data emissão NF']),db=parseDate(b['Data emissão NF']);return(db?db.getTime():0)-(da?da.getTime():0);});
+  const pageRows=sorted.slice(start,start+pg.size);const tbody=document.getElementById('tb-global-detail');if(!tbody)return;
+  tbody.innerHTML=pageRows.map(r=>{const stCol=r._isNP?'var(--green)':r._isFP?'var(--red)':r._isPNP?'var(--purple)':r._isPFP?'var(--orange)':'var(--muted)';const oc=r._oc||r['Ocorrência Entrega']||'';return `<tr><td style="font-family:var(--mono);font-size:10px;color:var(--muted)">${esc(r._nf)||'—'}</td><td title="${esc(r._dealer)}">${esc(r._dealer)||'—'}</td><td title="${esc(r._dest)}">${esc((r._dest||'').length>30?(r._dest||'').slice(0,30)+'…':(r._dest||'—'))}</td><td><span class="city-chip">${esc(r._cidade)||'—'}</span></td><td>${esc(r._uf)||'—'}</td><td>${esc(r._tsp)||'—'}</td><td style="color:${stCol};font-weight:700;font-size:10.5px">${esc(r.Status)||'—'}</td><td style="font-size:10.5px">${fmtDate(r['Data emissão NF'])}</td><td style="font-size:10.5px;font-weight:700">${fmtDate(r['Previsão de Entrega'])}</td><td style="font-size:10.5px">${fmtDate(r['Data de Entrega'])}</td><td title="${esc(oc)}" style="color:var(--muted)">${esc(oc?((oc.length>26)?oc.slice(0,26)+'…':oc):'—')}</td></tr>`;}).join('');
+  const lbl=document.getElementById('detail-count-lbl');if(lbl)lbl.textContent=fmtN(DATA.length)+' NFs filtradas · 10 por página';setPager('detail',pg.cur,DATA.length);
+}
+
+// ══════════════════════════════════════
+// RENDER: DEALER
 // ══════════════════════════════════════
 function renderDealer(){
   const byD=groupBy(DATA,r=>r._id);
@@ -1511,6 +1567,24 @@ function renderUF(){
   const t14=ufArr.slice().sort((a,b)=>b.fin-a.fin).slice(0,14).sort((a,b)=>a.otd-b.otd);
   mkChart('c-uf-dual',{type:'bar',data:{labels:t14.map(d=>d.u),datasets:[{label:'Volume NFs',data:t14.map(d=>d.fin),backgroundColor:'rgba(29,107,230,.55)',borderColor:'#1d6be6',borderWidth:1,borderRadius:4,yAxisID:'y',datalabels:{display:false}},{label:'OTD %',data:t14.map(d=>d.otd),type:'line',borderColor:'#e63946',backgroundColor:'transparent',borderWidth:2.5,pointRadius:4,pointBackgroundColor:t14.map(d=>otdColor(d.otd)),tension:.3,yAxisID:'y2',datalabels:{display:false}}]},options:{...b,onClick:(e,els)=>{if(els.length){const uf=t14[els[0].index]?.u;if(uf)drawerUF(String(uf));}},scales:dualScales()}});
   document.getElementById('tb-uf').innerHTML=ufArr.map(d=>`<tr class="clickable" onclick="drawerUF('${d.u}')"><td style="font-weight:700">${d.u}</td><td style="color:var(--muted)">${d.reg}</td><td>${fmtN(d.fin)}</td><td>${fmtN(d.np)}</td><td style="color:${d.fp>0?'var(--red)':'inherit'}">${fmtN(d.fp)}</td><td style="color:var(--purple)">${fmtN(d.pnp)}</td><td style="color:var(--orange)">${fmtN(d.pfp)}</td><td>${otdPct(d.otd)}</td><td>${gapBadge(d.otd)}</td></tr>`).join('');
+}
+
+
+// ══════════════════════════════════════
+// RENDER: CIDADE
+// ══════════════════════════════════════
+function filterByCity(city){const el=document.getElementById('f-cidade');if(el){el.value=city;applyFilters();}}
+function cityAgg(){const byCity=groupBy(DATA,r=>r._cidade?`${r._cidade}|${r._uf}`:null);return Object.entries(byCity).map(([k,rows])=>{const [cidade,uf]=k.split('|');const s=stats(rows);const tsps=[...new Set(rows.map(r=>r._tsp).filter(Boolean))].join(', ');return{cidade,uf,tsps,...s};}).filter(d=>d.fin+d.pnp+d.pfp>0);}
+function cityRankHTML(arr,emptyMsg){if(!arr.length)return`<div style="color:var(--muted);font-size:12px;padding:18px">${emptyMsg}</div>`;return arr.map((d,i)=>`<div class="city-rank-row" onclick="filterByCity('${String(d.cidade).replace(/'/g,"\\'")}')"><div class="city-rank-main"><div class="city-rank-title">${i+1}. ${d.cidade} / ${d.uf}</div><div class="city-rank-sub">${fmtN(d.fin)} finalizadas · ${fmtN(d.fp)} atrasos · ${d.tsps||'—'}</div></div><div style="font-weight:800;color:${otdColor(d.otd)}">${d.otd!==null?d.otd.toFixed(1).replace('.',',')+'%':'—'}</div></div>`).join('');}
+function renderCidade(){
+  const arr=cityAgg(),valid=arr.filter(d=>d.fin>0&&d.otd!==null),s=stats(DATA),best=valid.slice().sort((a,b)=>b.otd-a.otd)[0]||{cidade:'—',uf:'',otd:0},crit=valid.filter(d=>d.otd<WARN).length;
+  document.getElementById('kpi-cidade').innerHTML=kpi('Cidades Atendidas',fmtN(arr.length),'com movimento','c-white','cyan','🏙️')+kpi('Cidades Críticas',fmtN(crit),'OTD < '+WARN+'%','c-red','red','🔴')+kpi('Melhor Cidade',best.cidade.length>16?best.cidade.slice(0,16)+'…':best.cidade,(best.uf?best.uf+' · ':'')+(best.otd?best.otd.toFixed(1)+'%':''),'c-green','green','🏆')+kpi('OTD Geral',s.otd!==null?s.otd.toFixed(1).replace('.',',')+' %':'—','base filtrada',s.otd>=META?'c-green':s.otd>=WARN?'c-yellow':'c-red',s.otd>=META?'green':s.otd>=WARN?'yellow':'red','🎯');
+  const worst20=valid.filter(d=>d.fin>=5).sort((a,b)=>a.otd-b.otd).slice(0,20),vol20=arr.slice().sort((a,b)=>b.total-a.total).slice(0,20).sort((a,b)=>a.total-b.total),b=baseOpts();
+  mkChart('c-cidade-otd',{type:'bar',data:{labels:worst20.map(d=>`${d.cidade}/${d.uf}`),datasets:[{label:'OTD %',data:worst20.map(d=>d.otd),backgroundColor:worst20.map(d=>otdColor(d.otd)+'bb'),borderRadius:4,datalabels:sdl(100,true)},metaDS(worst20)]},options:{...b,indexAxis:'y',onClick:(e,els)=>{if(els.length)filterByCity(worst20[els[0].index].cidade);},plugins:{...b.plugins,legend:{display:false}},scales:{x:{...b.scales.x,min:0,max:100,ticks:{...b.scales.x.ticks,callback:v=>v+'%'}},y:{...b.scales.y,ticks:{color:tc(),font:{family:'Inter',size:9.5}},grid:{display:false}}}}});
+  mkChart('c-cidade-volume',{type:'bar',data:{labels:vol20.map(d=>`${d.cidade}/${d.uf}`),datasets:[{label:'Volume NFs',data:vol20.map(d=>d.total),backgroundColor:'rgba(29,107,230,.6)',borderRadius:4,yAxisID:'y',datalabels:{display:false}},{label:'OTD %',data:vol20.map(d=>d.otd),type:'line',borderColor:'#e63946',backgroundColor:'transparent',borderWidth:2.5,pointRadius:4,pointBackgroundColor:vol20.map(d=>otdColor(d.otd)),tension:.3,yAxisID:'y2',datalabels:{display:false}}]},options:{...b,onClick:(e,els)=>{if(els.length)filterByCity(vol20[els[0].index].cidade);},scales:dualScales()}});
+  document.getElementById('cidade-critical').innerHTML=cityRankHTML(valid.filter(d=>d.otd<META).sort((a,b)=>a.otd-b.otd).slice(0,18),'Nenhuma cidade crítica no filtro atual.');
+  document.getElementById('cidade-best').innerHTML=cityRankHTML(valid.filter(d=>d.otd>=META).sort((a,b)=>b.fin-a.fin).slice(0,18),'Nenhuma cidade acima da meta no filtro atual.');
+  document.getElementById('tb-cidade').innerHTML=arr.slice().sort((a,b)=>(a.otd??999)-(b.otd??999)).map((d,i)=>`<tr class="clickable" onclick="filterByCity('${String(d.cidade).replace(/'/g,"\\'")}')"><td style="color:var(--muted)">${i+1}</td><td style="font-weight:700">${d.cidade||'—'}</td><td>${d.uf||'—'}</td><td>${fmtN(d.total)}</td><td>${fmtN(d.fin)}</td><td>${fmtN(d.np)}</td><td style="color:${d.fp>0?'var(--red)':'inherit'}">${fmtN(d.fp)}</td><td style="color:var(--purple)">${fmtN(d.pnp+d.pfp)}</td><td>${otdPct(d.otd)}</td><td>${gapBadge(d.otd)}</td></tr>`).join('');
 }
 
 // ══════════════════════════════════════
