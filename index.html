@@ -97,7 +97,15 @@ function rTsp(){let d=aNF('_tsp').sort((a,b)=>b.otd-a.otd),s=sNF(DATA);$('k-tsp'
 function rUf(){let d=aNF('_uf').sort((a,b)=>b.otd-a.otd);$('k-uf').innerHTML=kpi('Estados',fmt(d.length),'ativos','blue','📍')+kpi('Abaixo Meta',fmt(d.filter(x=>x.otd<98).length),'OTD < 98%','yellow','⚠️')+kpi('Melhor UF',d[0]?.k||'—',pct(d[0]?.otd),'green','🏆')+kpi('Pior UF',d.at(-1)?.k||'—',pct(d.at(-1)?.otd),'red','🔴');barH('uf-bar',d.map(x=>x.k),d.map(x=>x.otd),'OTD CEVA por NF');barHC('uf-dual',d.map(x=>x.k),d.map(x=>x.total),'Volume por UF');$('tb-uf').innerHTML=d.map(x=>`<tr><td><b>${x.k}</b></td><td>${REG[x.k]||'Outros'}</td><td>${x.total}</td><td style="color:var(--red)">${x.fp}</td><td>${x.pnp+x.pfp}</td><td>${pill(x.otd)}</td></tr>`).join('')} 
 function rCid(){let d=aNF('_cid').sort((a,b)=>a.otd-b.otd);$('k-cidade').innerHTML=kpi('Cidades',fmt(d.length),'atendidas','blue','🏙️')+kpi('Críticas',fmt(d.filter(x=>x.otd<88).length),'OTD < 88%','red','🔴')+kpi('Melhor',short(d.slice().sort((a,b)=>b.otd-a.otd)[0]?.k||'—',18),pct(d.slice().sort((a,b)=>b.otd-a.otd)[0]?.otd),'green','🏆')+kpi('Atrasos',fmt(d.reduce((a,b)=>a+b.fp,0)),'total FP','red','⚠️');barH('cid-otd',d.filter(x=>x.fin>=2).map(x=>short(x.k,24)),d.filter(x=>x.fin>=2).map(x=>x.otd),'OTD CEVA por NF');let v=d.slice().sort((a,b)=>b.total-a.total).slice(0,150);barHC('cid-vol',v.map(x=>short(x.k,24)),v.map(x=>x.total),'Volume por Cidade');$('tb-cid').innerHTML=d.slice(0,250).map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.k)}</td><td>${x.rows[0]._uf}</td><td>${x.total}</td><td style="color:var(--red)">${x.fp}</td><td>${pill(x.otd)}</td></tr>`).join('')} 
 function rDia(){let d=Object.entries(gb(DATA.filter(r=>r._dia),r=>r._dia)).map(([k,v])=>({k,...sNF(v)})).sort((a,b)=>+a.k-+b.k),s=sNF(DATA);$('k-dia').innerHTML=kpi('Dias',fmt(d.length),'com dados','blue','📅')+kpi('OTD Geral',pct(s.otd),'período',s.otd>=98?'green':s.otd>=88?'yellow':'red','🎯')+kpi('Melhor Dia',pct(Math.max(...d.map(x=>x.otd||0))),'record','green','📈')+kpi('Pior Dia',pct(Math.min(...d.map(x=>x.otd||100))),'atenção','red','📉');line('dia-line',d.map(x=>'Dia '+x.k),d.map(x=>x.otd),'OTD CEVA por NF');$('tb-dia').innerHTML=monthNF().map(x=>`<tr><td>${mon(x.k)}</td><td>${x.np}</td><td style="color:var(--red)">${x.fp}</td><td>${x.pnp+x.pfp}</td><td>${x.total}</td><td>${pill(x.otd)}</td></tr>`).join('')}
-function mapArr(){let rows=MAP==='vol'?VOLROWS():NFROWS();let g=gb(rows,r=>r._uf);return Object.entries(g).map(([uf,v])=>{let s=MAP==='vol'?sVol(v):sNF(v);return{uf,rows:v,otd:s.otd,total:MAP==='vol'?s.vtotal:s.total}}).filter(x=>x.total>0||x.otd!=null).sort((a,b)=>(b.otd??-1)-(a.otd??-1))}function setMap(m){MAP=m;$('bnf').classList.toggle('active',m==='nf');$('bvol').classList.toggle('active',m==='vol');$('map-badge').textContent=m==='vol'?'Mobis Volume':'CEVA NF';rMap()}function rMap(){let d=mapArr();$('k-mapa').innerHTML=kpi('Modo',MAP==='vol'?'Mobis Volume':'CEVA NF',MAP==='vol'?'Previsão de Entrega':'Data Início TSP','blue','🗺️')+kpi('UFs na Meta',fmt(d.filter(x=>x.otd>=98).length),'OTD ≥ 98%','green','🟢')+kpi('Melhor UF',d[0]?.uf||'—',pct(d[0]?.otd),'green','🏆')+kpi('Pior UF',d.at(-1)?.uf||'—',pct(d.at(-1)?.otd),'red','⚠️')+kpi('Total',fmt(d.reduce((a,b)=>a+b.total,0)),MAP==='vol'?'volumes/NFs':'NFs','blue','📦');barH('map-chart',d.map(x=>x.uf),d.map(x=>x.otd),MAP==='vol'?'OTD Mobis por Volume':'OTD CEVA por NF');renderLeafletMap(d)}
+function mapArr(){let rows=MAP==='vol'?VOLROWS():NFROWS();let g=gb(rows,r=>r._uf);return Object.entries(g).map(([uf,v])=>{let s=MAP==='vol'?sVol(v):sNF(v);return{uf,rows:v,otd:s.otd,total:MAP==='vol'?s.vtotal:s.total}}).filter(x=>x.total>0||x.otd!=null).sort((a,b)=>(b.otd??-1)-(a.otd??-1))}function setMap(m){
+  MAP=m||'vol';
+  if($('bnf')) $('bnf').classList.toggle('active',MAP==='nf');
+  if($('bvol')) $('bvol').classList.toggle('active',MAP==='vol');
+  if($('map-badge')) $('map-badge').textContent=MAP==='vol'?'Mobis Volume':'CEVA NF';
+  renderLeafletEstadosOTD_v36();
+}function rMap(){
+  renderLeafletEstadosOTD_v36();
+}
 function mapColor(v){if(v==null||!isFinite(v))return'#b7c0cc';if(v>=98)return'#00b050';if(v>=95)return'#27ae60';if(v>=90)return'#f5b642';if(v>=88)return'#f39c12';return'#ef5b6a'}
 function renderLeafletMap(d){let el=$('brmap');if(!el)return;el.innerHTML='<div class="map-title">🗺️ MAPA OTD POR ESTADO <b>'+(MAP==='vol'?'MOBIS VOLUME':'CEVA NF')+'</b></div><div class="map-tabs"><button class="'+(MAP==='nf'?'active':'')+'" onclick="setMap(\'nf\')">CEVA NF</button><button class="'+(MAP==='vol'?'active':'')+'" onclick="setMap(\'vol\')">Mobis Volume</button></div><div id="leaflet-br" class="leaflet-map"></div><div class="map-legend-real"><div class="ttl">OTD PERFORMANCE</div><span><i style="background:#00b050"></i>≥ 98%</span><span><i style="background:#27ae60"></i>95–97,9%</span><span><i style="background:#f5b642"></i>90–94,9%</span><span><i style="background:#f39c12"></i>88–89,9%</span><span><i style="background:#ef5b6a"></i>&lt; 88%</span><span><i style="background:#b7c0cc"></i>Sem dados</span></div>';if(!window.L){el.innerHTML='<div class="map-placeholder" style="display:flex!important;height:100%"><div><h3>Mapa Brasil</h3><p>Leaflet não carregou. Verifique conexão.</p></div></div>';return}let data={};d.forEach(x=>data[x.uf]=x);let ufName={Acre:'AC',Alagoas:'AL',Amazonas:'AM',Amapá:'AP',Amapa:'AP',Bahia:'BA',Ceará:'CE',Ceara:'CE','Distrito Federal':'DF','Espírito Santo':'ES','Espirito Santo':'ES',Goiás:'GO',Goias:'GO',Maranhão:'MA',Maranhao:'MA','Minas Gerais':'MG','Mato Grosso do Sul':'MS','Mato Grosso':'MT',Pará:'PA',Para:'PA',Paraíba:'PB',Paraiba:'PB',Pernambuco:'PE',Piauí:'PI',Piaui:'PI',Paraná:'PR',Parana:'PR','Rio de Janeiro':'RJ','Rio Grande do Norte':'RN',Rondônia:'RO',Rondonia:'RO',Roraima:'RR','Rio Grande do Sul':'RS','Santa Catarina':'SC',Sergipe:'SE','São Paulo':'SP','Sao Paulo':'SP',Tocantins:'TO'};let coords={AC:[-9.97,-67.81],AL:[-9.57,-36.55],AM:[-4.2,-63.2],AP:[1.4,-51.8],BA:[-12.6,-41.8],CE:[-5.2,-39.6],DF:[-15.8,-47.9],ES:[-19.6,-40.7],GO:[-16.1,-49.6],MA:[-5.1,-45.2],MG:[-18.5,-44.4],MS:[-20.7,-54.6],MT:[-13.1,-56.1],PA:[-4.5,-52.8],PB:[-7.1,-36.7],PE:[-8.4,-37.8],PI:[-7.7,-42.7],PR:[-24.7,-51.6],RJ:[-22.3,-42.7],RN:[-5.8,-36.5],RO:[-10.8,-63.1],RR:[2.0,-61.3],RS:[-30.1,-53.5],SC:[-27.3,-50.7],SE:[-10.7,-37.3],SP:[-22.5,-48.6],TO:[-10.2,-48.3]};let getUF=p=>{p=p||{};let vals=[p.sigla,p.uf,p.UF,p.id,p.ID,p.name,p.nome,p.NOME,p.estado,p.Estado];for(let v of vals){if(!v)continue;v=String(v).replace(/^BR/i,'').trim();if(v.length===2)return v.toUpperCase();if(ufName[v])return ufName[v]}return''};let map=L.map('leaflet-br',{zoomControl:true,attributionControl:true,scrollWheelZoom:true});L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:8,minZoom:3,attribution:'©OpenStreetMap ©CARTO'}).addTo(map);fetch('https://raw.githubusercontent.com/giuliano-macedo/geodata-br-states/main/geojson/br_states.json').then(r=>r.json()).then(geo=>{let labels=L.layerGroup().addTo(map);let layer=L.geoJSON(geo,{style:f=>{let uf=getUF(f.properties),x=data[uf],c=mapColor(x?.otd);return{color:'#e6eef6',weight:1.4,fillColor:c,fillOpacity:.90}},onEachFeature:(f,l)=>{let uf=getUF(f.properties),x=data[uf];l.bindTooltip(`${uf}: ${pct(x?.otd)} · ${fmt(x?.total||0)}`,{sticky:true,className:'uf-tip'});l.on('click',()=>drawer('UF '+uf,(MAP==='vol'?VOLROWS():NFROWS()).filter(r=>r._uf===uf)));if(!x)return;let pos=coords[uf]||[l.getBounds().getCenter().lat,l.getBounds().getCenter().lng];let cls=(x.otd!=null&&x.otd<88)?'uf-label-real red':'uf-label-real';L.marker(pos,{icon:L.divIcon({className:cls,html:`<div class="pct">${pct(x.otd)}</div>`,iconSize:[58,30],iconAnchor:[29,15]})}).addTo(labels)}}).addTo(map);map.fitBounds(layer.getBounds(),{padding:[4,4]});setTimeout(()=>map.invalidateSize(),100)}).catch(e=>{console.warn(e);el.innerHTML='<div class="map-placeholder" style="display:flex!important;height:100%"><div><h3>Mapa Brasil</h3><p>Não foi possível carregar o GeoJSON do Brasil.</p></div></div>'})}
 function rTend(){let m=monthNF(),s=sNF(DATA),xs=m.map((_,i)=>i),ys=m.map(x=>x.otd),lr=lin(xs,ys);$('k-tend').innerHTML=kpi('OTD CEVA',pct(s.otd),'por NF',s.otd>=98?'green':s.otd>=88?'yellow':'red','📄')+kpi('Tendência',lr.s>=0?'▲ Subindo':'▼ Caindo',pp(lr.s)+'/mês',lr.s>=0?'green':'red','📈')+kpi('Proj. Próx.',pct(Math.max(0,Math.min(100,lr.b+lr.s*m.length))),'linear','blue','🔮')+kpi('Meses',fmt(m.length),'analisados','blue','📅')+kpi('FP',fmt(s.fp),'NFs atrasadas','red','⚠️');line('tend-main',m.map(x=>mon(x.k)),m.map(x=>x.otd),'OTD CEVA por NF');dual('tend-dual',m.map(x=>mon(x.k)),m.map(x=>x.fin),m.map(x=>x.otd),'NFs','OTD CEVA %');chart('tend-delay',{type:'bar',data:{labels:m.map(x=>mon(x.k)),datasets:[{label:'Dias atraso médio',data:m.map(x=>avgDelay(x.rows)),backgroundColor:'#f4a620cc',borderRadius:7}]}});$('ml').innerHTML=`<div class="insight ${lr.s<0?'red':'green'}"><div style="font-size:24px">${lr.s<0?'📉':'📈'}</div><div><b>Leitura automática</b><br><span style="color:var(--muted)">Tendência CEVA por NF: <b>${pp(lr.s)} por mês</b>. ${lr.s<0?'Priorizar PDCA nas TSPs críticas.':'Manter ações e replicar melhores práticas.'}</span></div></div>`}function lin(x,y){let n=Math.min(x.length,y.length);if(n<2)return{s:0,b:y[0]||0};let sx=x.reduce((a,b)=>a+b,0),sy=y.reduce((a,b)=>a+b,0),sxy=x.reduce((t,v,i)=>t+v*y[i],0),sx2=x.reduce((t,v)=>t+v*v,0),s=(n*sxy-sx*sy)/(n*sx2-sx*sx||1);return{s,b:(sy-s*sx)/n}}function avgDelay(rows){let s=0,c=0;rows.filter(r=>r._fp&&r._prev&&r._ent).forEach(r=>{let d=Math.round((r._ent-r._prev)/86400000);if(d>0){s+=d;c++}});return c?Math.round(s/c*10)/10:0}
@@ -108,7 +116,41 @@ function rEsp(){let s=sNF(NFROWS()),v=sVol(VOLROWS()),t=aVol('_tsp').sort((a,b)=
 function rIns(){let s=sNF(NFROWS()),v=sVol(VOLROWS()),t=aNF('_tsp').sort((a,b)=>a.otd-b.otd),u=aNF('_uf').sort((a,b)=>a.otd-b.otd);$('k-ins').innerHTML=kpi('NFs FP',fmt(s.fp),'atrasadas','red','🚨')+kpi('Vol. FP',fmt(Math.round(v.vfp)),'impacto físico','red','📦')+kpi('TSPs Críticas',fmt(t.filter(x=>x.otd<88).length),'OTD < 88%','red','🔴')+kpi('Pendentes',fmt(s.pend),'em aberto','yellow','🕐');$('ins-content').innerHTML=`<div class="insight red"><div style="font-size:24px">🚚</div><div><b>TSP de maior atenção</b><br><span style="color:var(--muted)">${t[0]?.k||'—'} com OTD ${pct(t[0]?.otd)}.</span></div></div><div class="insight yellow"><div style="font-size:24px">📍</div><div><b>UF de maior atenção</b><br><span style="color:var(--muted)">${u[0]?.k||'—'} com OTD ${pct(u[0]?.otd)}.</span></div></div><div class="insight ${v.otd>=s.otd?'green':'red'}"><div style="font-size:24px">⚖️</div><div><b>Mobis x CEVA</b><br><span style="color:var(--muted)">OTD Mobis Volume ${pct(v.otd)} vs CEVA NF ${pct(s.otd)}. Gap ${pp(v.otd-s.otd)}.</span></div></div>`}
 function rAdv(){let d=aNF('_id'),t=aNF('_tsp').sort((a,b)=>b.fin-a.fin);$('k-adv').innerHTML=kpi('Dealers abaixo',fmt(d.filter(x=>x.otd<98).length),'OTD < 98%','yellow','📉')+kpi('Dealers críticos',fmt(d.filter(x=>x.otd<88).length),'OTD < 88%','red','🚨')+kpi('Gap médio',pp(d.reduce((a,b)=>a+((b.otd||0)-98),0)/(d.length||1)),'vs meta','blue','🎯')+kpi('TSPs',fmt(t.length),'ativas','blue','🚚');dough('adv-donut',t.map(x=>x.k),t.map(x=>x.fin));heat('ht-tsp','_tsp',t.slice(0,12).map(x=>x.k));$('tb-adv').innerHTML=d.sort((a,b)=>b.fp-a.fp).slice(0,250).map((x,i)=>`<tr><td>${i+1}</td><td>${esc(short(x.rows[0]._dest,36))}</td><td>${x.rows[0]._uf}</td><td>${x.rows[0]._tsp}</td><td style="color:var(--red)">${x.fp}</td><td>${pill(x.otd)}</td><td>${x.otd>=98?'Meta':x.otd>=88?'Atenção':'Crítico'}</td></tr>`).join('')}function heat(id,key,keys){let meses=[...new Set(DATA.map(r=>r._mes).filter(Boolean))].sort((a,b)=>a-b),h='<table class="tbl"><tr><th>'+key+'</th>'+meses.map(m=>'<th>'+mon(m)+'</th>').join('')+'</tr>';keys.forEach(k=>{h+=`<tr><td><b>${esc(k)}</b></td>`;meses.forEach(m=>{let st=sNF(DATA.filter(r=>r[key]===k&&r._mes==m)),v=st.otd;h+=`<td style="background:${col(v)}22;color:${col(v)}">${pct(v)}</td>`});h+='</tr>'});$(id).innerHTML=h+'</table>'}
 function rNet(){let d=aNF('_id').sort((a,b)=>b.total-a.total),t=Object.entries(gb(DATA,r=>r._tsp)).map(([k,v])=>({k,q:new Set(v.map(r=>r._id)).size})).sort((a,b)=>b.q-a.q),u=Object.entries(gb(DATA,r=>r._uf)).map(([k,v])=>({k,q:new Set(v.map(r=>r._id)).size})).sort((a,b)=>b.q-a.q);$('k-net').innerHTML=kpi('Dealers',fmt(d.length),'cadastrados','blue','🔗')+kpi('Transportadoras',fmt(t.length),'ativas','blue','🚚')+kpi('Estados',fmt(u.length),'cobertos','green','📍')+kpi('Cidades',fmt(new Set(DATA.map(r=>r._cid)).size),'atendidas','yellow','🏙️');barHC('net-tsp',t.map(x=>x.k),t.map(x=>x.q),'Dealers por TSP');barHC('net-uf',u.map(x=>x.k),u.map(x=>x.q),'Dealers por UF');$('tb-net').innerHTML=d.slice(0,300).map((x,i)=>`<tr><td>${i+1}</td><td>${esc(short(x.rows[0]._dest,38))}</td><td>${x.rows[0]._uf}</td><td>${x.rows[0]._cid}</td><td>${x.rows[0]._tsp}</td><td>${x.total}</td><td>${pill(x.otd)}</td></tr>`).join('')} 
-function loadText(text,label){RAW=parseCSV(text).map(enrich);BASE=[...RAW];DATA=[...RAW];fillFilters();go('visao');status(`✓ ${label}: ${fmt(RAW.length)} registros carregados`,true);setTimeout(()=>$('status').classList.add('hidden'),3500)}function loadFile(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=x=>loadText(x.target.result,f.name);r.readAsText(f,'utf-8')}async function loadAutoCSV(){
+function mesAtualInicial(){
+  let el=$('fmes');
+  if(!el||!el.options||el.options.length<2)return '';
+  let atual=String(new Date().getMonth()+1);
+  let vals=[...el.options].map(o=>o.value).filter(Boolean);
+  if(vals.includes(atual))return atual;
+  let nums=vals.map(Number).filter(n=>Number.isFinite(n)).sort((a,b)=>a-b);
+  let cand=nums.filter(n=>n<=Number(atual)).pop()||nums.pop();
+  return cand?String(cand):'';
+}
+function aplicarMesAtualInicial(){
+  let el=$('fmes');
+  if(!el)return false;
+  if(ACTIVE_MONTH){el.value=ACTIVE_MONTH;return false;}
+  let m=mesAtualInicial();
+  if(!m)return false;
+  el.value=m;
+  ACTIVE_MONTH=m;
+  return true;
+}
+function loadText(text,label){
+  RAW=parseCSV(text).map(enrich);
+  BASE=[...RAW];
+  DATA=[...RAW];
+  fillFilters();
+  aplicarMesAtualInicial();
+  applyFilters(false);
+  go('visao');
+  status(`✓ ${label}: ${fmt(RAW.length)} registros carregados · mês inicial: ${$('fmes').value?mon($('fmes').value):'Todos'}`,true);
+  setTimeout(()=>$('status').classList.add('hidden'),3500);
+}function loadFile(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=x=>loadText(x.target.result,f.name);r.readAsText(f,'utf-8')}async function loadAutoCSV(){
+  if(location.protocol==='file:'){
+    status('Arquivo aberto localmente (file://). O navegador bloqueia carregamento automático do CSV. Use Importar CSV ou abra pelo GitHub Pages/servidor local.',false);
+    return false;
+  }
   const paths=['./data/base_otd.csv','data/base_otd.csv','./base_otd.csv','base_otd.csv'];
   for(const path of paths){
     try{
@@ -205,58 +247,98 @@ setTimeout(()=>{try{if(Q('uf-vol-dual'))arrBar('uf-vol-dual',aVol('_uf'),'vol');
 </script>
 
 
-<style id="hotfix-mapa-brasil-estatico-murilo">
-/* Hotfix seguro: mapa em construção com imagem estática do Brasil. Não usa CSV. */
-.br-static-shell{height:100%;min-height:500px;position:relative;display:grid;place-items:center;background:linear-gradient(180deg,#dbe8ef 0%,#f7fbff 100%);border-radius:18px;overflow:hidden;border:1px solid var(--border)}
-.br-static-card{width:min(520px,86%);height:min(610px,88%);display:grid;place-items:center;position:relative}.br-static-svg{width:100%;height:100%;display:block;filter:drop-shadow(0 18px 20px rgba(0,0,0,.20))}.br-static-title{position:absolute;left:14px;top:14px;background:rgba(255,255,255,.94);border-radius:12px;padding:8px 12px;font-size:10px;font-weight:1000;letter-spacing:.9px;color:#62708a;box-shadow:0 3px 10px rgba(0,0,0,.12);z-index:3}.br-static-title b{color:#0d1224;margin-left:8px}.br-static-note{position:absolute;left:18px;right:18px;bottom:16px;background:rgba(255,255,255,.93);border:1px solid #d8dde3;border-radius:14px;padding:12px 14px;text-align:center;color:#0d1224;font-weight:1000;font-size:13px;box-shadow:0 4px 14px rgba(0,0,0,.14);z-index:3}.br-static-note small{display:block;color:#62708a;font-size:10px;font-weight:800;margin-top:4px}.br-static-zoom{position:absolute;left:14px;top:58px;background:#fff;border:1px solid #a8b0b8;border-radius:4px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.2);z-index:3}.br-static-zoom div{width:34px;height:34px;display:grid;place-items:center;color:#111;font-size:25px;font-weight:800;border-bottom:1px solid #c8cdd2}.br-static-zoom div:last-child{border-bottom:0}.map-card-photo{height:500px!important;background:#dbe8ef!important}.map-page-grid .cw{height:500px!important}
+<style id="v12-36-leaflet-estados-otd-ajustes-murilo">
+/* V12.36 — Leaflet estados OTD: sem textos internos, legenda simplificada, labels UF/OTD e zoom liberado */
+#p-mapa .map-page-grid{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:8px!important}
+#p-mapa .map-page-grid>.card:nth-child(2){display:none!important}
+#p-mapa .map-page-grid>.card:first-child{padding:8px!important;border-radius:16px!important;background:linear-gradient(180deg,var(--card),color-mix(in srgb,var(--card) 97%,#1d6be6 3%))!important}
+#p-mapa .map-page-grid>.card:first-child>.hd{font-size:9px!important;margin-bottom:6px!important;min-height:24px!important}
+#p-mapa .map-page-grid>.card:first-child>.hd .right{display:flex!important}
+#p-mapa .map-page-grid>.card:first-child>.hd .badge{display:inline-flex!important}
+#brmap.map-card-photo,#brmap{height:clamp(380px,50vh,480px)!important;border:1px solid rgba(13,18,36,.20)!important;border-radius:16px!important;background:#dce9f0!important;overflow:hidden!important;position:relative!important;box-shadow:0 10px 24px rgba(15,23,42,.12)!important}
+.leaflet-otd36-shell{height:100%;position:relative;background:#dce9f0}.leaflet-otd36-map{height:100%;width:100%;z-index:1;cursor:grab}.leaflet-otd36-title{position:absolute;left:12px;top:10px;z-index:500;background:rgba(255,255,255,.96);border:1px solid rgba(180,192,202,.75);border-radius:12px;padding:8px 11px;box-shadow:0 6px 16px rgba(15,23,42,.11);color:#62708a;font-size:9px;font-weight:1000;letter-spacing:.8px;text-transform:uppercase;pointer-events:none}.leaflet-otd36-title b{color:#0d1224;margin-left:7px}.leaflet-otd36-legend{position:absolute;right:12px;bottom:12px;z-index:500;background:rgba(255,255,255,.96);border:1px solid rgba(180,192,202,.75);border-radius:13px;padding:9px 11px;box-shadow:0 6px 16px rgba(15,23,42,.11);font-size:10px;font-weight:900;color:#1f2937;min-width:145px;pointer-events:auto}.leaflet-otd36-legend .ttl{font-size:9px;letter-spacing:2px;color:#62708a;margin-bottom:6px;font-weight:1000}.leaflet-otd36-legend span{display:flex;align-items:center;gap:7px;margin:5px 0}.leaflet-otd36-legend i{width:12px;height:12px;border-radius:4px;display:inline-block}.leaflet-container{font-family:Inter,Arial,sans-serif}.leaflet-control-attribution{font-size:10px!important;font-weight:700!important}.leaflet-control-zoom{z-index:700!important}.leaflet-control-zoom a{color:#111!important;font-weight:900!important;font-size:21px!important}.uf-otd36-tooltip{font-family:Inter,Arial,sans-serif;font-weight:900;font-size:11px;line-height:1.25}.uf-otd36-tooltip b{font-size:12px}.uf-otd36-tooltip small{display:block;color:#62708a;font-weight:800;margin-top:2px}.uf-otd36-label{background:rgba(255,255,255,.92);border:1px solid rgba(13,18,36,.18);border-radius:8px;box-shadow:0 3px 8px rgba(15,23,42,.16);padding:3px 5px;text-align:center;color:#0d1224;font-family:Inter,Arial,sans-serif;font-weight:1000;line-height:1.05;min-width:42px;pointer-events:none}.uf-otd36-label .uf{font-size:10px}.uf-otd36-label .otd{font-size:8px;color:#62708a;margin-top:1px}.leaflet-pane.leaflet-tooltip-pane{z-index:650!important}
+@media(max-width:900px){#brmap.map-card-photo,#brmap{height:410px!important}.leaflet-otd36-title{left:9px;top:9px;font-size:8px;padding:7px 9px}.leaflet-otd36-legend{right:9px;bottom:9px;font-size:8.5px;min-width:122px}.uf-otd36-label{transform:scale(.82);transform-origin:center}}
 </style>
-<script id="hotfix-mapa-brasil-estatico-murilo">
+<script id="v12-36-leaflet-estados-otd-ajustes-murilo">
 (function(){
-function byId(id){return document.getElementById(id)}
-function renderBrazilStatic(){
-  var br=byId('brmap');
-  if(br){
-    br.innerHTML=`<div class="br-static-shell">
-      <div class="br-static-title">🗺️ MAPA BRASIL <b>EM CONSTRUÇÃO</b></div>
-      <div class="br-static-zoom"><div>+</div><div>−</div></div>
-      <div class="br-static-card">
-        <svg class="br-static-svg" viewBox="0 0 720 860" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Imagem ilustrativa do mapa do Brasil">
-          <defs>
-            <linearGradient id="brStaticGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#00b050"/>
-              <stop offset="48%" stop-color="#18a4e0"/>
-              <stop offset="100%" stop-color="#f5b041"/>
-            </linearGradient>
-            <radialGradient id="brStaticGlow" cx="50%" cy="42%" r="65%">
-              <stop offset="0%" stop-color="#ffffff" stop-opacity=".42"/>
-              <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
-            </radialGradient>
-          </defs>
-          <rect width="720" height="860" fill="url(#brStaticGlow)"/>
-          <path d="M230 55 L283 55 L318 112 L395 95 L455 115 L454 160 L535 184 L622 250 L663 344 L635 424 L600 492 L578 565 L528 632 L475 642 L455 725 L396 810 L313 820 L276 755 L310 690 L260 630 L274 535 L210 468 L200 390 L126 360 L80 300 L112 225 L150 175 L177 92 Z" fill="url(#brStaticGrad)" stroke="#ffffff" stroke-width="10" stroke-linejoin="round"/>
-          <path d="M90 300 C170 285 210 330 250 370 M260 630 C330 600 390 610 475 642 M430 315 C465 370 490 450 480 560 M520 245 C575 310 600 370 600 450 M375 205 C420 230 430 270 430 315 M310 690 C360 690 400 715 455 725" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="3" stroke-linecap="round"/>
-          <circle cx="430" cy="425" r="28" fill="#ffffff" opacity=".95"/>
-          <text x="430" y="432" text-anchor="middle" font-family="Inter,Arial" font-size="21" font-weight="1000" fill="#0d1224">BR</text>
-        </svg>
-      </div>
-      <div class="br-static-note">Mapa geográfico em construção<small>Imagem ilustrativa do Brasil — sem dados do CSV</small></div>
-    </div>`;
-  }
-  var k=byId('k-mapa');
-  if(k && typeof kpi==='function'){
-    k.innerHTML = kpi('Status','Em construção','mapa geográfico','yellow','🚧') + kpi('Mapa','Brasil','imagem estática','blue','🗺️') + kpi('CSV','Não utilizado','somente imagem','blue','📌') + kpi('Próxima etapa','Refinar mapa','pós reunião','yellow','🛠️');
-  }
-  var c=byId('map-chart');
-  if(c && c.parentElement){
-    c.style.display='none';
-    c.parentElement.innerHTML='<div class="insight yellow"><div>🚧</div><div><b>Em construção</b><br><span class="ksub">Mapa substituído por imagem estática do Brasil. Sem leitura de dados do CSV nesta seção.</span></div></div>';
-  }
+const GEOJSON_URL='https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson';
+const NAME_TO_UF={'acre':'AC','alagoas':'AL','amapa':'AP','amapá':'AP','amazonas':'AM','bahia':'BA','ceara':'CE','ceará':'CE','distrito federal':'DF','espirito santo':'ES','espírito santo':'ES','goias':'GO','goiás':'GO','maranhao':'MA','maranhão':'MA','mato grosso':'MT','mato grosso do sul':'MS','minas gerais':'MG','para':'PA','pará':'PA','paraiba':'PB','paraíba':'PB','parana':'PR','paraná':'PR','pernambuco':'PE','piaui':'PI','piauí':'PI','rio de janeiro':'RJ','rio grande do norte':'RN','rio grande do sul':'RS','rondonia':'RO','rondônia':'RO','roraima':'RR','santa catarina':'SC','sao paulo':'SP','são paulo':'SP','sergipe':'SE','tocantins':'TO'};
+function gid(id){return document.getElementById(id)}
+function colorOTD(v){if(v==null||!isFinite(v))return'#b7c0cc';if(v>=98)return'#00b050';if(v>=90)return'#f5b642';return'#ef5b6a'}
+function ufFromProps(p){p=p||{};let cand=p.sigla||p.SIGLA||p.uf||p.UF||p.UF_05||p.postal||p.abbrev||p.code||p.estado_sigla;if(cand){cand=String(cand).trim().toUpperCase();if(cand.length===2)return cand}let name=p.name||p.NAME||p.nome||p.NOME||p.estado||p.ESTADO||p.state||p.State;if(name){return NAME_TO_UF[String(name).trim().toLowerCase()]||''}return''}
+function currentRows(){try{return MAP==='vol'?VOLROWS():NFROWS()}catch(e){return DATA||[]}}
+function statsByUF36(){const rows=currentRows();const grouped={};(rows||[]).forEach(r=>{let uf=(r._uf||r['UF Destino']||r.uf||'').toString().trim().toUpperCase();if(!uf)return;(grouped[uf]=grouped[uf]||[]).push(r)});const out={};Object.keys(grouped).forEach(uf=>{try{let s=MAP==='vol'?sVol(grouped[uf]):sNF(grouped[uf]);out[uf]={otd:s.otd,total:MAP==='vol'?Math.round(s.vtotal||0):(s.total||0),rows:grouped[uf]}}catch(e){out[uf]={otd:null,total:grouped[uf].length,rows:grouped[uf]}}});return out}
+function updateKpis36(st){const vals=Object.entries(st).map(([uf,v])=>({uf,...v})).filter(x=>x.total>0).sort((a,b)=>(b.otd??-1)-(a.otd??-1));const total=vals.reduce((a,b)=>a+(b.total||0),0);const best=vals[0],worst=vals.slice().sort((a,b)=>(a.otd??999)-(b.otd??999))[0];if(gid('k-mapa')&&typeof kpi==='function'){gid('k-mapa').innerHTML=kpi('Modo',MAP==='vol'?'Mobis Volume':'CEVA NF','OTD por UF','blue','🗺️')+kpi('UFs ≥98%',fmt(vals.filter(x=>x.otd>=98).length),'verde','green','🟢')+kpi('Melhor UF',best?.uf||'—',pct(best?.otd),'green','🏆')+kpi('Pior UF',worst?.uf||'—',pct(worst?.otd),'red','⚠️')+kpi('Total',fmt(total),MAP==='vol'?'volumes':'NFs','blue','📦')}}
+function layerCenter(layer){try{return layer.getBounds().getCenter()}catch(e){return null}}
+async function renderLeafletEstadosOTD_v36(){
+  const br=gid('brmap');
+  if(!br)return;
+  const token=(window.__cevaEstadosRenderToken36||0)+1;
+  window.__cevaEstadosRenderToken36=token;
+  const st=statsByUF36();
+  updateKpis36(st);
+  try{if(window.__cevaEstadosTimer36)clearTimeout(window.__cevaEstadosTimer36)}catch(e){}
+  try{if(window.__cevaEstadosMap36){window.__cevaEstadosMap36.remove();window.__cevaEstadosMap36=null}}catch(e){}
+  br.innerHTML=`<div class="leaflet-otd36-shell"><div class="leaflet-otd36-title">MAPA OTD POR ESTADO <b>${MAP==='vol'?'MOBIS VOLUME':'CEVA NF'}</b></div><div id="leaflet-estados-otd36" class="leaflet-otd36-map"></div><div class="leaflet-otd36-legend"><div class="ttl">OTD</div><span><i style="background:#00b050"></i>≥ 98%</span><span><i style="background:#f5b642"></i>90–97,9%</span><span><i style="background:#ef5b6a"></i>&lt; 90%</span><span><i style="background:#b7c0cc"></i>Sem dados</span></div></div>`;
+  if(gid('map-badge'))gid('map-badge').textContent=MAP==='vol'?'Mobis Volume':'CEVA NF';
+  const chart=gid('map-chart');if(chart&&chart.parentElement)chart.parentElement.innerHTML='';
+  const host=gid('leaflet-estados-otd36');
+  if(!host)return;
+  if(!window.L){host.innerHTML='<div style="height:100%;display:grid;place-items:center;color:#62708a;font-weight:900">Leaflet não carregou.</div>';return}
+  window.__cevaEstadosTimer36=setTimeout(async()=>{
+    if(window.__cevaEstadosRenderToken36!==token)return;
+    const hostNow=gid('leaflet-estados-otd36');if(!hostNow)return;
+    try{
+      if(hostNow._leaflet_id){hostNow._leaflet_id=null;delete hostNow._leaflet_id;}
+      if(window.__cevaEstadosMap36){try{window.__cevaEstadosMap36.remove()}catch(e){}window.__cevaEstadosMap36=null;}
+      const map=L.map(hostNow,{zoomControl:true,attributionControl:true,scrollWheelZoom:true,wheelDebounceTime:20,wheelPxPerZoomLevel:80,touchZoom:true,doubleClickZoom:true,boxZoom:true,keyboard:true,dragging:true,preferCanvas:true});
+      window.__cevaEstadosMap36=map;
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:18,minZoom:3,attribution:'© OpenStreetMap © CARTO'}).addTo(map);
+      try{
+        const geo=window.__cevaEstadosGeo36 || await fetch(GEOJSON_URL,{cache:'force-cache'}).then(r=>{if(!r.ok)throw new Error('GeoJSON HTTP '+r.status);return r.json()});
+        window.__cevaEstadosGeo36=geo;
+        const labels=[];
+        const layer=L.geoJSON(geo,{style:f=>{let uf=ufFromProps(f.properties);let v=st[uf]?.otd;return{color:'#ffffff',weight:1.4,opacity:.95,fillColor:colorOTD(v),fillOpacity:.78};},onEachFeature:(f,l)=>{let uf=ufFromProps(f.properties)||'--';let v=st[uf];let o=v&&v.otd!=null?pct(v.otd):'Sem dados';let total=v?fmt(v.total):'0';l.bindTooltip(`<div class="uf-otd36-tooltip"><b>${uf}</b> · OTD ${o}<small>${total} ${MAP==='vol'?'volumes':'NFs'}</small></div>`,{sticky:true,direction:'top'});l.on('mouseover',()=>l.setStyle({weight:3,color:'#0d1224',fillOpacity:.88}));l.on('mouseout',()=>layer.resetStyle(l));l.on('click',()=>{try{let rows=(MAP==='vol'?VOLROWS():NFROWS()).filter(r=>r._uf===uf);if(rows.length&&typeof drawer==='function')drawer('UF '+uf,rows)}catch(e){}});l.on('add',()=>{let c=layerCenter(l);if(c){let html=`<div class="uf-otd36-label"><div class="uf">${uf}</div><div class="otd">${o==='Sem dados'?'—':o}</div></div>`;let marker=L.marker(c,{interactive:false,icon:L.divIcon({className:'',html:html,iconSize:[48,28],iconAnchor:[24,14]})});labels.push(marker);marker.addTo(map)}})}}).addTo(map);
+        map.fitBounds(layer.getBounds(),{padding:[12,12],maxZoom:5});
+        window.__cevaEstadosLabels36=labels;
+      }catch(e){console.error('Erro GeoJSON estados',e);map.setView([-14.2350,-51.9253],4)}
+      L.control.scale({imperial:false,metric:true,position:'bottomleft'}).addTo(map);
+      setTimeout(()=>{try{map.invalidateSize();map.scrollWheelZoom.enable();map.dragging.enable()}catch(e){}},150);
+    }catch(e){
+      console.error('Erro ao inicializar mapa Leaflet',e);
+      const h=gid('leaflet-estados-otd36');
+      if(h)h.innerHTML='<div style="height:100%;display:grid;place-items:center;color:#62708a;font-weight:900;text-align:center">Mapa reinicializado. Clique novamente em Mapa ou atualize a página.</div>';
+    }
+  },60);
 }
-window.renderMap=renderBrazilStatic;
-window.rMap=renderBrazilStatic;
-window.setMap=function(){renderBrazilStatic()};
-try{ if(typeof NAMES==='object') NAMES.mapa='Em construção'; }catch(e){}
-setTimeout(function(){ if(document.querySelector('#p-mapa.active')) renderBrazilStatic(); },150);
+window.renderLeafletEstadosOTD_v36=renderLeafletEstadosOTD_v36;
+function overrideEstados36(){window.rMap=renderLeafletEstadosOTD_v36;window.renderMap=renderLeafletEstadosOTD_v36;window.renderLeafletMap=function(){renderLeafletEstadosOTD_v36()};window.setMap=function(m){MAP=m||MAP||'vol';if(gid('bnf'))gid('bnf').classList.toggle('active',MAP==='nf');if(gid('bvol'))gid('bvol').classList.toggle('active',MAP==='vol');renderLeafletEstadosOTD_v36()};try{rMap=window.rMap;renderMap=window.rMap;renderLeafletMap=window.renderLeafletMap;setMap=window.setMap}catch(e){}}
+overrideEstados36();document.addEventListener('DOMContentLoaded',function(){setTimeout(overrideEstados36,60);setTimeout(function(){if(document.querySelector('#p-mapa.active'))renderLeafletEstadosOTD_v36()},350)});setTimeout(overrideEstados36,1000);
+})();
+</script>
+
+
+<style id="v36-definitivo-sem-mapa-feio-murilo">
+/* DEFINITIVO: página Mapa usa apenas Leaflet Estados OTD. Qualquer mapa estático antigo é removido/oculto. */
+#p-mapa .br-static-shell,#p-mapa .br-static-card,#p-mapa .br-static-svg,#p-mapa .br-static-title,#p-mapa .br-static-note,#p-mapa .br-static-zoom,#p-mapa .map-placeholder,#p-mapa .map-clean,#p-mapa .leaflet-like{display:none!important;visibility:hidden!important;opacity:0!important;width:0!important;height:0!important;overflow:hidden!important}
+#p-mapa .leaflet-otd36-shell{display:block!important;visibility:visible!important;opacity:1!important;width:100%!important;height:100%!important}
+#p-mapa .leaflet-otd36-map{display:block!important;visibility:visible!important;opacity:1!important;width:100%!important;height:100%!important}
+.leaflet-attribution-flag,.leaflet-control-attribution svg,.leaflet-control-attribution img,.leaflet-control-attribution [class*="flag"]{display:none!important;width:0!important;height:0!important;max-width:0!important;max-height:0!important;overflow:hidden!important;opacity:0!important;visibility:hidden!important}
+.leaflet-otd36-shell .leaflet-top.leaflet-left{top:58px!important;left:12px!important;z-index:720!important}
+.leaflet-otd36-title{left:58px!important;right:auto!important;max-width:calc(100% - 350px)!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;z-index:650!important}
+.leaflet-otd36-shell .leaflet-control-zoom{background:#fff!important;border:1px solid #a8b0b8!important;border-radius:6px!important;overflow:hidden!important;box-shadow:0 3px 10px rgba(0,0,0,.20)!important}
+@media(max-width:900px){.leaflet-otd36-shell .leaflet-top.leaflet-left{top:76px!important}.leaflet-otd36-title{left:12px!important;right:12px!important;max-width:none!important}}
+</style>
+<script id="v36-definitivo-sem-mapa-feio-murilo">
+(function(){
+function gid2(id){return document.getElementById(id)}
+function activeMapa(){return !!document.querySelector('#p-mapa.active')}
+function cleanupMapaFeio(){try{document.querySelectorAll('#p-mapa .br-static-shell,#p-mapa .br-static-card,#p-mapa .br-static-svg,#p-mapa .br-static-title,#p-mapa .br-static-note,#p-mapa .br-static-zoom,#p-mapa .map-placeholder,#p-mapa .map-clean,#p-mapa .leaflet-like,.leaflet-attribution-flag').forEach(el=>el.remove())}catch(e){}}
+function forceLeaflet(){cleanupMapaFeio();if(!activeMapa())return;const br=gid2('brmap');if(!br)return;const good=!!br.querySelector('#leaflet-estados-otd36,.leaflet-otd36-shell');if(!good&&typeof window.renderLeafletEstadosOTD_v36==='function'){try{window.renderLeafletEstadosOTD_v36()}catch(e){console.warn('forceLeaflet',e)}}}
+if(typeof window.renderBrazilStatic==='function'){window.renderBrazilStatic=function(){if(typeof window.renderLeafletEstadosOTD_v36==='function')return window.renderLeafletEstadosOTD_v36()}}
+if(typeof window.applyFilters==='function'&&!window.applyFilters.__forceLeaflet36Definitivo){const old=window.applyFilters;const w=function(){const r=old.apply(this,arguments);setTimeout(forceLeaflet,80);setTimeout(forceLeaflet,350);return r};w.__forceLeaflet36Definitivo=true;window.applyFilters=w;try{applyFilters=window.applyFilters}catch(e){}}
+if(typeof window.go==='function'&&!window.go.__forceLeaflet36Definitivo){const oldGo=window.go;const wgo=function(){const r=oldGo.apply(this,arguments);setTimeout(forceLeaflet,120);return r};wgo.__forceLeaflet36Definitivo=true;window.go=wgo;try{go=window.go}catch(e){}}
+let n=0;const iv=setInterval(()=>{n++;forceLeaflet();if(n>80)clearInterval(iv)},150);
 })();
 </script>
 
