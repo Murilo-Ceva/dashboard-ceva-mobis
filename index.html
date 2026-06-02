@@ -730,12 +730,10 @@ function rNet(){let d=aNF('_id').sort((a,b)=>b.total-a.total),t=Object.entries(g
 function mesAtualInicial(){
   let el=$('fmes');
   if(!el||!el.options||el.options.length<2)return '';
-  let atual=String(new Date().getMonth()+1);
   let vals=[...el.options].map(o=>o.value).filter(Boolean);
-  if(vals.includes(atual))return atual;
-  let nums=vals.map(Number).filter(n=>Number.isFinite(n)).sort((a,b)=>a-b);
-  let cand=nums.filter(n=>n<=Number(atual)).pop()||nums.pop();
-  return cand?String(cand):'';
+  if(vals.includes('5'))return '5';
+  if(vals.includes('05'))return '05';
+  return vals[0]||'';
 }
 function aplicarMesAtualInicial(){
   let el=$('fmes');
