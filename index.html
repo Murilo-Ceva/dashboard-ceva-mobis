@@ -731,8 +731,21 @@ function mesAtualInicial(){
   let el=$('fmes');
   if(!el||!el.options||el.options.length<2)return '';
   let vals=[...el.options].map(o=>o.value).filter(Boolean);
-  if(vals.includes('5'))return '5';
-  if(vals.includes('05'))return '05';
+
+  // Abre no mês atual do computador/navegador.
+  // Ex.: junho = 6. Se existir no filtro, seleciona Junho automaticamente.
+  let mesAtual = new Date().getMonth() + 1;
+  let atual = String(mesAtual);
+  let atual2 = String(mesAtual).padStart(2,'0');
+  if(vals.includes(atual))return atual;
+  if(vals.includes(atual2))return atual2;
+
+  // Se o mês atual ainda não existir na base, usa o mês mais recente disponível.
+  let nums = vals.map(v=>Number(v)).filter(n=>isFinite(n));
+  if(nums.length){
+    let ultimo = Math.max(...nums);
+    return vals.find(v=>Number(v)===ultimo)||'';
+  }
   return vals[0]||'';
 }
 function aplicarMesAtualInicial(){
